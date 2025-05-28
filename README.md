@@ -1,191 +1,365 @@
-# FuRnItUrE-cOnFiGuRaToR
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Конфигуратор мебельной фурнитуры</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next@23.11.5/dist/umd/i18next.min.js"></script>
   <style>
     body {
-      background: linear-gradient(135deg, #1a1a1a, #000000);
+      background: linear-gradient(135deg, #0d1b2a, #1b263b);
       min-height: 100vh;
       font-family: 'Arial', sans-serif;
-      color: #ffffff;
+      color: #e0e1dd;
       position: relative;
       overflow-x: hidden;
     }
-    .container-overlay {
-      background: rgba(255, 255, 255, 0.05);
+    .container-overlay, .welcome-container {
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 1.5rem;
-      padding: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(5px);
-      max-width: 80rem;
+      padding: 2rem;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      max-width: 90rem;
       width: 100%;
-      margin: 0 auto;
+      margin: 2rem auto;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+    }
+    .welcome-container {
+      max-width: 45rem;
+      text-align: center;
+      animation: fadeInSlide 1s ease-out;
+    }
+    .configurator-container {
+      animation: fadeInUp 1s ease-out;
     }
     .edge-animation {
       position: fixed;
       top: 0;
       bottom: 0;
-      width: 50px;
-      background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), transparent);
-      animation: edgeGlow 3s ease-in-out infinite;
+      width: 60px;
+      background: linear-gradient(90deg, rgba(0, 255, 150, 0.3), transparent);
+      animation: edgePulse 4s ease-in-out infinite;
       pointer-events: none;
     }
-    .edge-animation.left {
-      left: 0;
-    }
-    .edge-animation.right {
-      right: 0;
-      background: linear-gradient(270deg, rgba(79, 70, 229, 0.2), transparent);
-    }
-    @keyframes edgeGlow {
-      0% { opacity: 0.3; transform: translateY(-10%); }
-      50% { opacity: 0.8; transform: translateY(10%); }
-      100% { opacity: 0.3; transform: translateY(-10%); }
-    }
+    .edge-animation.left { left: 0; }
+    .edge-animation.right { right: 0; background: linear-gradient(270deg, rgba(138, 43, 226, 0.3), transparent); }
+    .navbar { position: fixed; top: 0; width: 100%; background: linear-gradient(90deg, #0d1b2a, #415a77); padding: 1.5rem 0; z-index: 20; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); }
+    .price-inputs-container { display: flex; flex-direction: row; gap: 2rem; align-items: flex-start; margin-bottom: 2rem; }
+    .tab-buttons { display: flex; gap: 1rem; align-items: center; z-index: 10; }
+    .tab-button { background: rgba(255, 255, 255, 0.15); border-radius: 0.75rem; padding: 0.75rem 1.5rem; color: #e0e1dd; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
+    .tab-button.active { background: linear-gradient(45deg, #00ff96, #8a2be2); color: #fff; transform: scale(1.05); }
+    .tab-content { margin-top: 7rem; }
+    .tooltip .tooltip-text { visibility: hidden; width: 220px; background: rgba(0, 0, 0, 0.7); color: #d1e8e2; text-align: center; border-radius: 0.5rem; padding: 0.5rem; position: absolute; z-index: 1; left: -240px; top: 50%; transform: translateY(-50%); opacity: 0; transition: opacity 0.3s ease; }
+    .tooltip:hover .tooltip-text { visibility: visible; opacity: 0.95; }
+    @keyframes fadeInSlide { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { 0% { opacity: 0; transform: translateY(50px); } 100% { opacity: 1; transform: translateY(0); } }
+    @keyframes tourFadeIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes edgePulse { 0% { opacity: 0.4; } 50% { opacity: 0.9; } 100% { opacity: 0.4; } }
     @media (max-width: 640px) {
-      .container-overlay {
-        padding: 1rem;
-        margin: 0 0.5rem;
-      }
-      h1 {
-        font-size: 1.75rem;
-      }
-      h2 {
-        font-size: 1.25rem;
-      }
-      .grid-cols-3 {
-        grid-template-columns: 1fr;
-      }
-      .edge-animation {
-        width: 20px;
-      }
+      .container-overlay, .welcome-container { padding: 1rem; margin: 3rem 0.5rem; }
+      .welcome-container { margin: 5rem 0.5rem; }
+      h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.3rem; }
+      .grid-cols-3 { grid-template-columns: 1fr; }
+      .edge-animation { display: none; }
+      .navbar { padding: 0.75rem 0; }
+      .navbar a { font-size: 0.95rem; padding: 0.5rem; }
+      .price-inputs-container { flex-direction: column; align-items: center; }
+      .tab-buttons { flex-direction: column; width: 100%; margin-top: 1rem; }
+      .tab-button { width: 100%; text-align: center; padding: 0.5rem; font-size: 0.95rem; }
+      .tab-content { margin-top: 5rem; }
+      select, input { font-size: 1rem; padding: 0.75rem; }
+      button { font-size: 1rem; padding: 0.75rem; }
+    }
+    .about-container { background: linear-gradient(135deg, rgba(0, 255, 150, 0.2), rgba(0, 0, 0, 0.9)); border-radius: 1.5rem; padding: 2.5rem; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8); text-align: center; max-width: 55rem; margin: 7rem auto; animation: fadeInUp 1s ease-out; }
+    .about-container h2 { font-size: 2.2rem; color: #00ff96; margin-bottom: 1.5rem; }
+    .about-container p { font-size: 1.2rem; color: #d1e8e2; line-height: 1.7; }
+    .promotion-card { background: rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 1.5rem; margin: 1rem 0; transition: transform 0.4s ease, box-shadow 0.4s ease; animation: slideUp 0.8s ease-out; }
+    .promotion-card:hover { transform: translateY(-10px) rotate(2deg); box-shadow: 0 15px 30px rgba(0, 255, 150, 0.3); }
+    .tour-container { max-width: 90rem; margin: 7rem auto; text-align: center; opacity: 0; animation: tourFadeIn 1s ease-out forwards; animation-delay: 0.2s; }
+    .tour-container iframe { width: 100%; height: 450px; border-radius: 1.5rem; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8); transition: transform 0.5s ease; }
+    .tour-container:hover iframe { transform: scale(1.02); }
+    @media (max-width: 640px) {
+      .tour-container { margin: 5rem 0.5rem; }
+      .tour-container iframe { height: 300px; }
     }
   </style>
 </head>
-<body className="flex flex-col items-center justify-center min-h-screen p-4">
+<body className="flex flex-col min-h-screen p-4">
   <div className="edge-animation left"></div>
   <div className="edge-animation right"></div>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState } = React;
+    const { useState, useEffect } = React;
+    const { createRoot } = ReactDOM;
 
-    const App = () => {
+    i18next.init({
+      lng: 'ru',
+      resources: {
+        ru: {
+          translation: {
+            "welcome_title": "Добро пожаловать!",
+            "welcome_text": "Откройте мир мебельной фурнитуры с нашим удобным конфигуратором.",
+            "go_to_configurator": "Начать настройку",
+            "configurator_title": "Конфигуратор фурнитуры",
+            "type_label": "Тип фурнитуры",
+            "type_placeholder": "Выберите тип",
+            "type_tooltip": "Выберите тип, например, петли или ручки.",
+            "brand_label": "Бренд",
+            "brand_placeholder": "Выберите бренд",
+            "brand_tooltip": "Выберите бренд, например, GTV или BOYARD.",
+            "specific_option_label": "Опции",
+            "specific_option_placeholder": "Выберите опцию",
+            "specific_option_tooltip": "Уточните характеристики, например, доводчик.",
+            "price_range_from": "Цена от (руб.)",
+            "price_range_to": "Цена до (руб.)",
+            "find_options": "Найти",
+            "results_title": "Найденные варианты:",
+            "tab_results": "Результаты",
+            "tab_saved": "Сохранённые",
+            "save": "Сохранить",
+            "saved_results_title": "Сохранённые варианты:",
+            "export_selected_pdf": "Экспорт выбранных",
+            "export_all_pdf": "Экспорт всех",
+            "no_match": "Совпадений нет. Показываем похожие.",
+            "price_disclaimer": "*Цена может варьироваться",
+            "about_title": "О нас",
+            "about_text": "Мы предлагаем инновационный конфигуратор для выбора фурнитуры с актуальными данными.",
+            "nav_home": "Главная",
+            "nav_configurator": "Конфигуратор",
+            "nav_about": "О нас",
+            "nav_warehouse": "Виртуальный тур",
+            "nav_promotions": "Акции",
+            "nav_contacts": "Контакты",
+            "nav_reviews": "Отзывы",
+            "lang_ru": "Русский",
+            "lang_en": "English",
+            "name_label": "Наименование",
+            "type": "Тип",
+            "subtype_label": "Подтип",
+            "option": "Опция",
+            "brand": "Бренд",
+            "price": "Цена",
+            "description": "Описание",
+            "promotions_title": "Акции и скидки",
+            "promotion_gtv_discount": "Скидка 20% на GTV до 2025-06-15",
+            "promotion_free_delivery": "Бесплатная доставка от 7000 руб. до 2025-06-20",
+            "warehouse_title": "Виртуальный тур по складу",
+            "warehouse_text": "Погрузитесь в мир нашей фурнитуры!",
+            "contacts_title": "Свяжитесь с нами",
+            "contacts_text": "Оставьте заявку для консультации.",
+            "reviews_title": "Отзывы клиентов",
+            "reviews_text": "Поделитесь своим опытом!",
+            "sort_asc": "Сортировать по возрастанию",
+            "sort_desc": "Сортировать по убыванию"
+          }
+        },
+        en: {
+          translation: {
+            "welcome_title": "Welcome!",
+            "welcome_text": "Discover the world of furniture fittings with our configurator.",
+            "go_to_configurator": "Start Configuration",
+            "configurator_title": "Fittings Configurator",
+            "type_label": "Fitting Type",
+            "type_placeholder": "Select type",
+            "type_tooltip": "Select a type, e.g., hinges or handles.",
+            "brand_label": "Brand",
+            "brand_placeholder": "Select brand",
+            "brand_tooltip": "Select a brand, e.g., GTV or BOYARD.",
+            "specific_option_label": "Options",
+            "specific_option_placeholder": "Select option",
+            "specific_option_tooltip": "Specify features, e.g., soft-close.",
+            "price_range_from": "Price from (RUB)",
+            "price_range_to": "Price to (RUB)",
+            "find_options": "Find",
+            "results_title": "Found Options:",
+            "tab_results": "Results",
+            "tab_saved": "Saved",
+            "save": "Save",
+            "saved_results_title": "Saved Options:",
+            "export_selected_pdf": "Export Selected",
+            "export_all_pdf": "Export All",
+            "no_match": "No matches. Showing similar.",
+            "price_disclaimer": "*Price may vary",
+            "about_title": "About Us",
+            "about_text": "We offer an innovative configurator with up-to-date fitting data.",
+            "nav_home": "Home",
+            "nav_configurator": "Configurator",
+            "nav_about": "About Us",
+            "nav_warehouse": "Virtual Tour",
+            "nav_promotions": "Promotions",
+            "nav_contacts": "Contacts",
+            "nav_reviews": "Reviews",
+            "lang_ru": "Русский",
+            "lang_en": "English",
+            "name_label": "Name",
+            "type": "Type",
+            "subtype_label": "Subtype",
+            "option": "Option",
+            "brand": "Brand",
+            "price": "Price",
+            "description": "Description",
+            "promotions_title": "Promotions and Discounts",
+            "promotion_gtv_discount": "20% off GTV until 2025-06-15",
+            "promotion_free_delivery": "Free delivery over 7000 RUB until 2025-06-20",
+            "warehouse_title": "Virtual Warehouse Tour",
+            "warehouse_text": "Dive into our fittings world!",
+            "contacts_title": "Contact Us",
+            "contacts_text": "Leave a request for consultation.",
+            "reviews_title": "Customer Reviews",
+            "reviews_text": "Share your experience!",
+            "sort_asc": "Sort Ascending",
+            "sort_desc": "Sort Descending"
+          }
+        }
+      }
+    });
+
+    const Navbar = ({ setCurrentPage, onLanguageChange }) => {
+      const changeLanguage = (lng) => {
+        i18next.changeLanguage(lng);
+        onLanguageChange(lng);
+        document.querySelectorAll('[data-i18n]').forEach(elem => {
+          elem.textContent = i18next.t(elem.getAttribute('data-i18n'));
+        });
+      };
+
+      return (
+        React.createElement('nav', { className: 'navbar flex justify-center gap-6' },
+          React.createElement('a', {
+            href: '#',
+            onClick: () => setCurrentPage('welcome'),
+            className: 'text-white hover:text-green-400 transition duration-300',
+            'data-i18n': 'nav_home'
+          }, i18next.t('nav_home')),
+          React.createElement('a', {
+            href: '#',
+            onClick: () => setCurrentPage('configurator'),
+            className: 'text-white hover:text-green-400 transition duration-300',
+            'data-i18n': 'nav_configurator'
+          }, i18next.t('nav_configurator')),
+          React.createElement('a', {
+            href: '#',
+            onClick: () => setCurrentPage('about'),
+            className: 'text-white hover:text-green-400 transition duration-300',
+            'data-i18n': 'nav_about'
+          }, i18next.t('nav_about')),
+          React.createElement('a', {
+            href: '#',
+            onClick: () => setCurrentPage('warehouse'),
+            className: 'text-white hover:text-green-400 transition duration-300',
+            'data-i18n': 'nav_warehouse'
+          }, i18next.t('nav_warehouse')),
+          React.createElement('a', {
+            href: '#',
+            onClick: () => setCurrentPage('promotions'),
+            className: 'text-white hover:text-green-400 transition duration-300',
+            'data-i18n': 'nav_promotions'
+          }, i18next.t('nav_promotions')),
+          React.createElement('a', {
+            href: '#',
+            onClick: () => setCurrentPage('contacts'),
+            className: 'text-white hover:text-green-400 transition duration-300',
+            'data-i18n': 'nav_contacts'
+          }, i18next.t('nav_contacts')),
+          React.createElement('a', {
+            href: '#',
+            onClick: () => setCurrentPage('reviews'),
+            className: 'text-white hover:text-green-400 transition duration-300',
+            'data-i18n': 'nav_reviews'
+          }, i18next.t('nav_reviews')),
+          React.createElement('div', { className: 'flex gap-2' },
+            React.createElement('button', {
+              onClick: () => changeLanguage('ru'),
+              className: 'text-white hover:text-green-400 transition duration-300',
+              'data-i18n': 'lang_ru'
+            }, i18next.t('lang_ru')),
+            React.createElement('button', {
+              onClick: () => changeLanguage('en'),
+              className: 'text-white hover:text-green-400 transition duration-300',
+              'data-i18n': 'lang_en'
+            }, i18next.t('lang_en'))
+          )
+        )
+      );
+    };
+
+    const WelcomePage = ({ onNavigate }) => {
+      return (
+        React.createElement('div', { className: 'welcome-container' },
+          React.createElement('h1', {
+            className: 'text-5xl font-bold mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
+            'data-i18n': 'welcome_title'
+          }, i18next.t('welcome_title')),
+          React.createElement('p', { className: 'text-gray-300 mb-10', 'data-i18n': 'welcome_text' }, i18next.t('welcome_text')),
+          React.createElement('button', {
+            onClick: onNavigate,
+            className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-8 py-4 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300 transform hover:scale-110',
+            'data-i18n': 'go_to_configurator'
+          }, i18next.t('go_to_configurator'))
+        )
+      );
+    };
+
+    const ConfiguratorPage = ({ language }) => {
       const [type, setType] = useState('');
-      const [mechanism, setMechanism] = useState('');
       const [specificOption, setSpecificOption] = useState('');
       const [brand, setBrand] = useState('');
+      const [priceRange, setPriceRange] = useState({ min: '', max: '' });
       const [results, setResults] = useState([]);
       const [savedResults, setSavedResults] = useState([]);
+      const [activeTab, setActiveTab] = useState('results');
       const [error, setError] = useState('');
+      const [sortOrder, setSortOrder] = useState('none');
 
       const fittingsDatabase = [
-        { id: 1, name: "Петля угловая стандартная", type: "Петля", subtype: "Угловая", mechanism: "Без доводчика", specificOption: "Стандартная", brand: "Blum", price: 500, description: "Надёжная угловая петля для шкафов.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 2, name: "Петля накладная с доводчиком", type: "Петля", subtype: "Накладная", mechanism: "С доводчиком", specificOption: "С доводчиком", brand: "Hettich", price: 800, description: "Накладная петля с плавным закрыванием.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 3, name: "Петля врезная push-to-open", type: "Петля", subtype: "Врезная", mechanism: "Push-to-open", specificOption: "Push-to-open", brand: "Hafele", price: 1200, description: "Врезная петля с push-механизмом.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 4, name: "Направляющая шариковая стандартная", type: "Направляющая", subtype: "Шариковая", mechanism: "Без доводчика", specificOption: "Стандартная", brand: "Blum", price: 1500, description: "Шариковая направляющая для ящиков.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 5, name: "Направляющая роликовая с доводчиком", type: "Направляющая", subtype: "Роликовая", mechanism: "С доводчиком", specificOption: "С доводчиком", brand: "Hettich", price: 1800, description: "Роликовая направляющая с плавным ходом.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 6, name: "Направляющая скрытого монтажа push-to-open", type: "Направляющая", subtype: "Скрытого монтажа", mechanism: "Push-to-open", specificOption: "Push-to-open", brand: "Hafele", price: 2000, description: "Скрытая направляющая для ящиков.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 7, name: "Ручка круглая классическая", type: "Ручка", subtype: "Круглая", mechanism: "Без доводчика", specificOption: "Классическая", brand: "Blum", price: 300, description: "Классическая круглая ручка.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 8, name: "Ручка длинная современная", type: "Ручка", subtype: "Длинная", mechanism: "Без доводчика", specificOption: "Рейлинг", brand: "Hettich", price: 400, description: "Современная длинная ручка-рейлинг.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 9, name: "Ручка квадратная push-to-open", type: "Ручка", subtype: "Квадратная", mechanism: "Push-to-open", specificOption: "Скоба", brand: "Hafele", price: 600, description: "Квадратная ручка-скоба с push-механизмом.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 10, name: "Крепление угловое базовое", type: "Крепление", subtype: "Угловое", mechanism: "Без доводчика", specificOption: "Базовое", brand: "Hafele", price: 400, description: "Базовое угловое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 11, name: "Крепление скрытое регулируемое", type: "Крепление", subtype: "Скрытое", mechanism: "Без доводчика", specificOption: "Регулируемое", brand: "Grass", price: 500, description: "Регулируемое скрытое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 12, name: "Петля угловая усиленная", type: "Петля", subtype: "Угловая", mechanism: "Без доводчика", specificOption: "Усиленная", brand: "Grass", price: 600, description: "Усиленная угловая петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 13, name: "Петля накладная премиум", type: "Петля", subtype: "Накладная", mechanism: "С доводчиком", specificOption: "С доводчиком", brand: "FGV", price: 850, description: "Премиум накладная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 14, name: "Направляющая роликовая лёгкая", type: "Направляющая", subtype: "Роликовая", mechanism: "Без доводчика", specificOption: "Лёгкая", brand: "FGV", price: 1200, description: "Лёгкая роликовая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 15, name: "Направляющая шариковая усиленная", type: "Направляющая", subtype: "Шариковая", mechanism: "С доводчиком", specificOption: "Усиленная", brand: "Blum", price: 2200, description: "Усиленная шариковая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 16, name: "Ручка круглая винтажная", type: "Ручка", subtype: "Круглая", mechanism: "Без доводчика", specificOption: "Винтажная", brand: "Hettich", price: 500, description: "Винтажная круглая ручка.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 17, name: "Ручка длинная хромированная", type: "Ручка", subtype: "Длинная", mechanism: "Без доводчика", specificOption: "Рейлинг", brand: "Hafele", price: 450, description: "Хромированная длинная ручка-рейлинг.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 18, name: "Крепление угловое регулируемое", type: "Крепление", subtype: "Угловое", mechanism: "Без доводчика", specificOption: "Регулируемое", brand: "Grass", price: 600, description: "Регулируемое угловое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 19, name: "Петля декоративная угловая", type: "Петля", subtype: "Угловая", mechanism: "Без доводчика", specificOption: "Декоративная", brand: "Blum", price: 850, description: "Декоративная угловая петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 20, name: "Петля усиленная врезная", type: "Петля", subtype: "Врезная", mechanism: "С доводчиком", specificOption: "Усиленная", brand: "Hettich", price: 650, description: "Усиленная врезная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 21, name: "Направляющая роликовая лёгкая+", type: "Направляющая", subtype: "Роликовая", mechanism: "Без доводчика", specificOption: "Лёгкая", brand: "FGV", price: 1300, description: "Улучшенная лёгкая роликовая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 22, name: "Ручка квадратная эргономичная", type: "Ручка", subtype: "Квадратная", mechanism: "Push-to-open", specificOption: "Скоба", brand: "Blum", price: 700, description: "Эргономичная квадратная ручка-скоба.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 23, name: "Петля скрытая врезная", type: "Петля", subtype: "Врезная", mechanism: "Push-to-open", specificOption: "Скрытая", brand: "Hettich", price: 1100, description: "Скрытая врезная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 24, name: "Направляющая шариковая декоративная", type: "Направляющая", subtype: "Шариковая", mechanism: "С доводчиком", specificOption: "Декоративная", brand: "Hafele", price: 1700, description: "Декоративная шариковая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 25, name: "Ручка круглая винтажная+", type: "Ручка", subtype: "Круглая", mechanism: "Без доводчика", specificOption: "Винтажная", brand: "Grass", price: 350, description: "Улучшенная винтажная круглая ручка.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 26, name: "Крепление потолочное регулируемое", type: "Крепление", subtype: "Потолочное", mechanism: "Без доводчика", specificOption: "Регулируемое", brand: "Hettich", price: 550, description: "Регулируемое потолочное крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 27, name: "Петля двойная угловая", type: "Петля", subtype: "Угловая", mechanism: "С доводчиком", specificOption: "Двойная", brand: "Hafele", price: 950, description: "Двойная угловая петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 28, name: "Направляющая роликовая мягкая", type: "Направляющая", subtype: "Роликовая", mechanism: "Push-to-open", specificOption: "Мягкая", brand: "Grass", price: 1900, description: "Мягкая роликовая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 29, name: "Ручка длинная дизайнерская", type: "Ручка", subtype: "Длинная", mechanism: "Без доводчика", specificOption: "Рейлинг", brand: "FGV", price: 600, description: "Дизайнерская длинная ручка-рейлинг.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 30, name: "Крепление угловое регулируемое+", type: "Крепление", subtype: "Угловое", mechanism: "Без доводчика", specificOption: "Регулируемое", brand: "Hafele", price: 700, description: "Улучшенное регулируемое угловое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 31, name: "Петля мини угловая", type: "Петля", subtype: "Угловая", mechanism: "Push-to-open", specificOption: "Мини", brand: "Grass", price: 550, description: "Мини-угловая петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 32, name: "Направляющая шариковая двойная", type: "Направляющая", subtype: "Шариковая", mechanism: "С доводчиком", specificOption: "Двойная", brand: "FGV", price: 2300, description: "Двойная шариковая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 33, name: "Ручка квадратная хромированная", type: "Ручка", subtype: "Квадратная", mechanism: "Без доводчика", specificOption: "Скоба", brand: "Blum", price: 450, description: "Хромированная квадратная ручка-скоба.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 34, name: "Крепление скрытое улучшенное", type: "Крепление", subtype: "Скрытое", mechanism: "Без доводчика", specificOption: "Улучшенное", brand: "FGV", price: 600, description: "Улучшенное скрытое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 35, name: "Петля премиум врезная", type: "Петля", subtype: "Врезная", mechanism: "Push-to-open", specificOption: "Премиум", brand: "Blum", price: 1300, description: "Премиум-врезная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 36, name: "Направляющая шариковая усиленная+", type: "Направляющая", subtype: "Шариковая", mechanism: "С доводчиком", specificOption: "Усиленная", brand: "Hettich", price: 2500, description: "Усиленная шариковая направляющая премиум-класса.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 37, name: "Ручка овальная дизайнерская", type: "Ручка", subtype: "Овальная", mechanism: "Без доводчика", specificOption: "Дизайнерская", brand: "Hafele", price: 800, description: "Дизайнерская овальная ручка.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 38, name: "Крепление универсальное регулируемое", type: "Крепление", subtype: "Универсальное", mechanism: "Без доводчика", specificOption: "Регулируемое", brand: "Blum", price: 750, description: "Регулируемое универсальное крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 39, name: "Петля угловая компактная", type: "Петля", subtype: "Угловая", mechanism: "Без доводчика", specificOption: "Компактная", brand: "Hettich", price: 520, description: "Компактная угловая петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 40, name: "Направляющая скрытого монтажа лёгкая", type: "Направляющая", subtype: "Скрытого монтажа", mechanism: "Push-to-open", specificOption: "Лёгкая", brand: "Grass", price: 1750, description: "Лёгкая скрытая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 41, name: "Ручка длинная минималистичная", type: "Ручка", subtype: "Длинная", mechanism: "Без доводчика", specificOption: "Рейлинг", brand: "FGV", price: 550, description: "Минималистичная длинная ручка-рейлинг.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 42, name: "Крепление угловое усиленное", type: "Крепление", subtype: "Угловое", mechanism: "Без доводчика", specificOption: "Усиленное", brand: "Blum", price: 650, description: "Усиленное угловое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 43, name: "Петля врезная стандартная", type: "Петля", subtype: "Врезная", mechanism: "С доводчиком", specificOption: "Стандартная", brand: "Hafele", price: 900, description: "Стандартная врезная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 44, name: "Направляющая роликовая усиленная", type: "Направляющая", subtype: "Роликовая", mechanism: "С доводчиком", specificOption: "Усиленная", brand: "Blum", price: 2000, description: "Усиленная роликовая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 45, name: "Ручка круглая современная", type: "Ручка", subtype: "Круглая", mechanism: "Без доводчика", specificOption: "Современная", brand: "Hettich", price: 400, description: "Современная круглая ручка.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 46, name: "Крепление скрытое компактное", type: "Крепление", subtype: "Скрытое", mechanism: "Без доводчика", specificOption: "Компактное", brand: "Grass", price: 450, description: "Компактное скрытое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 47, name: "Петля угловая декоративная+", type: "Петля", subtype: "Угловая", mechanism: "Push-to-open", specificOption: "Декоративная", brand: "FGV", price: 1000, description: "Улучшенная декоративная угловая петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 48, name: "Направляющая шариковая компактная", type: "Направляющая", subtype: "Шариковая", mechanism: "Без доводчика", specificOption: "Компактная", brand: "Blum", price: 1600, description: "Компактная шариковая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 49, name: "Ручка овальная винтажная", type: "Ручка", subtype: "Овальная", mechanism: "Без доводчика", specificOption: "Винтажная", brand: "Hafele", price: 600, description: "Винтажная овальная ручка.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 50, name: "Крепление угловое стандартное", type: "Крепление", subtype: "Угловое", mechanism: "Без доводчика", specificOption: "Стандартное", brand: "Hettich", price: 500, description: "Стандартное угловое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 51, name: "Петля врезная премиум+", type: "Петля", subtype: "Врезная", mechanism: "С доводчиком", specificOption: "Премиум", brand: "Grass", price: 1400, description: "Улучшенная премиум-врезная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 52, name: "Направляющая скрытого монтажа усиленная", type: "Направляющая", subtype: "Скрытого монтажа", mechanism: "Push-to-open", specificOption: "Усиленная", brand: "FGV", price: 2100, description: "Усиленная скрытая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 53, name: "Ручка длинная эргономичная", type: "Ручка", subtype: "Длинная", mechanism: "Без доводчика", specificOption: "Рейлинг", brand: "Blum", price: 650, description: "Эргономичная длинная ручка-рейлинг.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 54, name: "Крепление потолочное компактное", type: "Крепление", subtype: "Потолочное", mechanism: "Без доводчика", specificOption: "Компактное", brand: "Hafele", price: 480, description: "Компактное потолочное крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 55, name: "Петля угловая стандартная+", type: "Петля", subtype: "Угловая", mechanism: "С доводчиком", specificOption: "Стандартная", brand: "Hettich", price: 720, description: "Улучшенная стандартная угловая петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 56, name: "Направляющая роликовая декоративная+", type: "Направляющая", subtype: "Роликовая", mechanism: "С доводчиком", specificOption: "Декоративная", brand: "Grass", price: 1850, description: "Улучшенная декоративная роликовая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 57, name: "Ручка квадратная минималистичная", type: "Ручка", subtype: "Квадратная", mechanism: "Push-to-open", specificOption: "Скоба", brand: "FGV", price: 700, description: "Минималистичная квадратная ручка-скоба.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 58, name: "Крепление скрытое стандартное", type: "Крепление", subtype: "Скрытое", mechanism: "Без доводчика", specificOption: "Стандартное", brand: "Blum", price: 520, description: "Стандартное скрытое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 59, name: "Петля накладная компактная", type: "Петля", subtype: "Накладная", mechanism: "Без доводчика", specificOption: "Компактная", brand: "Hafele", price: 600, description: "Компактная накладная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 60, name: "Направляющая шариковая лёгкая", type: "Направляющая", subtype: "Шариковая", mechanism: "Без доводчика", specificOption: "Лёгкая", brand: "Hettich", price: 1400, description: "Лёгкая шариковая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 61, name: "Ручка овальная современная", type: "Ручка", subtype: "Овальная", mechanism: "Без доводчика", specificOption: "Современная", brand: "Grass", price: 550, description: "Современная овальная ручка.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 62, name: "Крепление угловое декоративное", type: "Крепление", subtype: "Угловое", mechanism: "Без доводчика", specificOption: "Декоративное", brand: "FGV", price: 580, description: "Декоративное угловое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 63, name: "Петля врезная декоративная", type: "Петля", subtype: "Врезная", mechanism: "Push-to-open", specificOption: "Декоративная", brand: "Blum", price: 1100, description: "Декоративная врезная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 64, name: "Направляющая скрытого монтажа декоративная", type: "Направляющая", subtype: "Скрытого монтажа", mechanism: "С доводчиком", specificOption: "Декоративная", brand: "Hafele", price: 1900, description: "Декоративная скрытая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 65, name: "Ручка длинная винтажная", type: "Ручка", subtype: "Длинная", mechanism: "Без доводчика", specificOption: "Рейлинг", brand: "Hettich", price: 620, description: "Винтажная длинная ручка-рейлинг.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 66, name: "Крепление потолочное усиленное", type: "Крепление", subtype: "Потолочное", mechanism: "Без доводчика", specificOption: "Усиленное", brand: "Grass", price: 700, description: "Усиленное потолочное крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 67, name: "Петля угловая премиум+", type: "Петля", subtype: "Угловая", mechanism: "С доводчиком", specificOption: "Премиум", brand: "FGV", price: 1250, description: "Улучшенная премиум-угловая петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 68, name: "Направляющая роликовая компактная", type: "Направляющая", subtype: "Роликовая", mechanism: "Без доводчика", specificOption: "Компактная", brand: "Blum", price: 1550, description: "Компактная роликовая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 69, name: "Ручка квадратная дизайнерская", type: "Ручка", subtype: "Квадратная", mechanism: "Push-to-open", specificOption: "Скоба", brand: "Hafele", price: 750, description: "Дизайнерская квадратная ручка-скоба.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 70, name: "Крепление скрытое декоративное", type: "Крепление", subtype: "Скрытое", mechanism: "Без доводчика", specificOption: "Декоративное", brand: "Hettich", price: 560, description: "Декоративное скрытое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 71, name: "Петля накладная усиленная", type: "Петля", subtype: "Накладная", mechanism: "С доводчиком", specificOption: "Усиленная", brand: "Grass", price: 950, description: "Усиленная накладная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 72, name: "Направляющая шариковая декоративная+", type: "Направляющая", subtype: "Шариковая", mechanism: "С доводчиком", specificOption: "Декоративная", brand: "FGV", price: 2000, description: "Улучшенная декоративная шариковая направляющая.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 73, name: "Ручка овальная минималистичная", type: "Ручка", subtype: "Овальная", mechanism: "Без доводчика", specificOption: "Минималистичная", brand: "Blum", price: 580, description: "Минималистичная овальная ручка.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 74, name: "Крепление угловое компактное", type: "Крепление", subtype: "Угловое", mechanism: "Без доводчика", specificOption: "Компактное", brand: "Hafele", price: 490, description: "Компактное угловое крепление.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" },
-        { id: 75, name: "Петля врезная компактная", type: "Петля", subtype: "Врезная", mechanism: "Push-to-open", specificOption: "Компактная", brand: "Hettich", price: 880, description: "Компактная врезная петля.", image: "https://via.placeholder.com/300x200/808080?text=Furniture+Part" }
+        { id: 1, name: "Петля угловая стандартная", type: "Петля", subtype: "Угловая", mechanism: "Без доводчика", specificOption: "Стандартная", brand: "GTV", price: 500, description: "Надёжная угловая петля для шкафов.", image: "https://avatars.mds.yandex.net/i?id=6c6f936f9f225749da710eacb5cccc32426fde80-8132087-images-thumbs&n=13" },
+        { id: 2, name: "Петля накладная с доводчиком", type: "Петля", subtype: "Накладная", mechanism: "С доводчиком", specificOption: "С доводчиком", brand: "BOYARD", price: 800, description: "Накладная петля с плавным закрыванием.", image: "https://www.boyard.biz/thumbs/original/products/h301a020930/36e376c9887d25fa4c777f18305719e2.jpg" },
+        { id: 3, name: "Петля врезная push-to-open", type: "Петля", subtype: "Врезная", mechanism: "Push-to-open", specificOption: "Push-to-open", brand: "DECOLINE", price: 1200, description: "Врезная петля с push-механизмом.", image: "https://gratis72.ru/upload/iblock/493/tehvfjk7lpyrz06nq7qb77sv6lj4drk1/08558114_fe74_11ec_b964_00155d936a00_5a75ba8f_fe7c_11ec_b964_00155d936a00.png" },
+        { id: 4, name: "Направляющая шариковая стандартная", type: "Направляющая", subtype: "Шариковая", mechanism: "Без доводчика", specificOption: "Стандартная", brand: "MF", price: 1500, description: "Шариковая направляющая для ящиков.", image: "https://avatars.mds.yandex.net/i?id=f5e609961ac0460c78fd86fec8d1fcbfe10626fd-5217037-images-thumbs&n=13" },
+        { id: 5, name: "Направляющая роликовая с доводчиком", type: "Направляющая", subtype: "Роликовая", mechanism: "С доводчиком", specificOption: "С доводчиком", brand: "GTV", price: 1800, description: "Роликовая направляющая с плавным ходом.", image: "https://cdn1.ozone.ru/s3/multimedia-b/6042782627.jpg" },
+        { id: 6, name: "Ручка круглая классическая", type: "Ручка", subtype: "Круглая", mechanism: "Без доводчика", specificOption: "Классическая", brand: "BOYARD", price: 300, description: "Классическая круглая ручка.", image: "https://avatars.mds.yandex.net/i?id=0162c28c527b7eb6053a30b1b042ed7b_l-5233220-images-thumbs&n=13" },
+        { id: 7, name: "Ручка длинная современная", type: "Ручка", subtype: "Длинная", mechanism: "Без доводчика", specificOption: "Рейлинг", brand: "DECOLINE", price: 400, description: "Современная длинная ручка-рейлинг.", image: "https://avatars.mds.yandex.net/i?id=2b0da45dcaa2a51019f95bb92fa43d4d_l-5859311-images-thumbs&n=13" },
+        { id: 8, name: "Крепление угловое базовое", type: "Крепление", subtype: "Угловое", mechanism: "Без доводчика", specificOption: "Базовое", brand: "MF", price: 400, description: "Базовое угловое крепление.", image: "https://avatars.mds.yandex.net/i?id=e7033f6d7e9ef1a87d8b637230e2c403_l-3986726-images-thumbs&n=13" },
+        { id: 9, name: "Крепление скрытое регулируемое", type: "Крепление", subtype: "Скрытое", mechanism: "Без доводчика", specificOption: "Регулируемое", brand: "GTV", price: 500, description: "Регулируемое скрытое крепление.", image: "https://avatars.mds.yandex.net/i?id=dd500551077a730b1cf29678cfb273c1a3da9594-4012435-images-thumbs&n=13" },
+        { id: 10, name: "Петля угловая усиленная", type: "Петля", subtype: "Угловая", mechanism: "Без доводчика", specificOption: "Усиленная", brand: "BOYARD", price: 600, description: "Усиленная угловая петля.", image: "https://avatars.mds.yandex.net/i?id=4769194da1fc6493664b7a7fb8e62386_l-5220849-images-thumbs&n=13" }
       ];
 
       const specificOptions = {
-        "Петля": ["Стандартная", "С доводчиком", "Push-to-open", "Усиленная", "Декоративная"],
-        "Направляющая": ["Стандартная", "С доводчиком", "Push-to-open", "Усиленная", "Декоративная"],
-        "Ручка": ["Классическая", "Рейлинг", "Скоба", "Винтажная", "Современная"],
-        "Крепление": ["Базовое", "Регулируемое", "Усиленное", "Компактное", "Декоративное"]
+        "Петля": ["Стандартная", "С доводчиком", "Push-to-open", "Усиленная"],
+        "Направляющая": ["Стандартная", "С доводчиком", "Лёгкая"],
+        "Ручка": ["Классическая", "Рейлинг"],
+        "Крепление": ["Базовое", "Регулируемое"]
       };
 
       const findBestOptions = () => {
+        if (!fittingsDatabase || fittingsDatabase.length === 0) {
+          setError(i18next.t('no_match'));
+          return;
+        }
+
         const filteredFittings = fittingsDatabase.filter(fitting => {
           const typeMatch = type ? fitting.type === type : true;
-          const mechanismMatch = mechanism ? fitting.mechanism === mechanism : true;
           const specificOptionMatch = specificOption ? fitting.specificOption === specificOption : true;
           const brandMatch = brand ? fitting.brand === brand : true;
+          const priceMinMatch = priceRange.min !== '' ? fitting.price >= Number(priceRange.min) : true;
+          const priceMaxMatch = priceRange.max !== '' ? fitting.price <= Number(priceRange.max) : true;
 
-          return typeMatch && mechanismMatch && specificOptionMatch && brandMatch;
+          return typeMatch && specificOptionMatch && brandMatch && priceMinMatch && priceMaxMatch;
         });
 
         if (filteredFittings.length === 0) {
-          setError('Точного совпадения не найдено. Показываем ближайший вариант.');
+          setError(i18next.t('no_match'));
           const fallback = type ? fittingsDatabase.find(f => f.type === type) : fittingsDatabase[0];
-          setResults([fallback]);
+          setResults(fallback ? [fallback] : []);
         } else {
           setError('');
           setResults(filteredFittings);
@@ -196,16 +370,15 @@
         const content = allResults ? [...results, ...savedResults] : results;
         const docDefinition = {
           content: [
-            { text: allResults ? 'Полный список фурнитуры' : 'Результаты подбора фурнитуры', style: 'header' },
+            { text: allResults ? i18next.t('export_all_pdf') : i18next.t('export_selected_pdf'), style: 'header' },
             ...content.map(fitting => ({
               text: [
-                `Название: ${fitting.name}\n`,
-                `Тип: ${fitting.type} (${fitting.subtype})\n`,
-                `Механизм: ${fitting.mechanism}\n`,
-                `Опция: ${fitting.specificOption}\n`,
-                `Бренд: ${fitting.brand}\n`,
-                `Цена: ${fitting.price} руб.\n`,
-                `Описание: ${fitting.description}\n\n`
+                `${i18next.t('name_label')}: ${fitting.name}\n`,
+                `${i18next.t('type')}: ${fitting.type} (${fitting.subtype})\n`,
+                `${i18next.t('option')}: ${fitting.specificOption}\n`,
+                `${i18next.t('brand')}: ${fitting.brand}\n`,
+                `${i18next.t('price')}: ${fitting.price} руб.\n`,
+                `${i18next.t('description')}: ${fitting.description}\n\n`
               ]
             }))
           ],
@@ -217,152 +390,273 @@
       };
 
       const saveResult = (fitting) => {
-        setSavedResults([...savedResults, fitting]);
+        if (!savedResults.some(item => item.id === fitting.id)) {
+          setSavedResults([...savedResults, fitting]);
+        }
       };
 
+      const sortResults = (order) => {
+        setSortOrder(order);
+        const sorted = [...results].sort((a, b) => {
+          if (order === 'asc') return a.price - b.price;
+          if (order === 'desc') return b.price - a.price;
+          return 0;
+        });
+        setResults(sorted);
+      };
+
+      const handlePriceRangeChange = (e) => {
+        const { name, value } = e.target;
+        const newValue = value === '' ? '' : Math.max(0, Number(value));
+        setPriceRange(prev => ({ ...prev, [name]: newValue }));
+      };
+
+      useEffect(() => {
+        findBestOptions();
+      }, [language, type, specificOption, brand, priceRange]);
+
       return (
-        <div className="container-overlay">
-          <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-indigo-400 to-purple-600 bg-clip-text text-transparent">Конфигуратор мебельной фурнитуры</h1>
-
-          <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-8">
-            <div className="w-full md:w-1/3">
-              <label className="block text-sm font-medium text-gray-200">Тип фурнитуры</label>
-              <select
-                value={type}
-                onChange={(e) => { setType(e.target.value); setSpecificOption(''); }}
-                className="mt-2 block w-full rounded-md border-gray-700 bg-gray-900 text-white shadow-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-3 transition duration-200"
-              >
-                <option value="">Выберите тип</option>
-                {[...new Set(fittingsDatabase.map(f => f.type))].map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-            <div className="w-full md:w-1/3">
-              <label className="block text-sm font-medium text-gray-200">Механизм</label>
-              <select
-                value={mechanism}
-                onChange={(e) => setMechanism(e.target.value)}
-                className="mt-2 block w-full rounded-md border-gray-700 bg-gray-900 text-white shadow-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-3 transition duration-200"
-              >
-                <option value="">Выберите механизм</option>
-                {[...new Set(fittingsDatabase.map(f => f.mechanism))].map(m => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
-            <div className="w-full md:w-1/3">
-              <label className="block text-sm font-medium text-gray-200">Бренд</label>
-              <select
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                className="mt-2 block w-full rounded-md border-gray-700 bg-gray-900 text-white shadow-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-3 transition duration-200"
-              >
-                <option value="">Выберите бренд</option>
-                {[...new Set(fittingsDatabase.map(f => f.brand))].map(b => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {type && (
-            <div className="mb-8 text-center">
-              <label className="block text-sm font-medium text-gray-200">Дополнительные опции для {type}</label>
-              <select
-                value={specificOption}
-                onChange={(e) => setSpecificOption(e.target.value)}
-                className="mt-2 block w-full md:w-1/3 mx-auto rounded-md border-gray-700 bg-gray-900 text-white shadow-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-3 transition duration-200"
-              >
-                <option value="">Выберите опцию</option>
-                {specificOptions[type].map(option => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {error && <p className="text-red-400 text-center mb-4">{error}</p>}
-
-          <div className="flex justify-center mb-8">
-            <button
-              onClick={findBestOptions}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transition duration-300 transform hover:scale-105 w-full md:w-auto"
-            >
-              Найти варианты
-            </button>
-          </div>
-
-          {results.length > 0 && (
-            <div>
-              <h2 className="text-3xl font-semibold text-white mb-6 text-center bg-gradient-to-r from-indigo-400 to-purple-600 bg-clip-text">Подходящие варианты:</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {results.map(fitting => (
-                  <div
-                    key={fitting.id}
-                    className="bg-gray-900 rounded-xl shadow-xl p-4 hover:bg-gray-800 hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-                  >
-                    <img
-                      src={fitting.image}
-                      alt={fitting.name}
-                      className="w-full h-40 object-cover rounded-lg mb-4"
-                    />
-                    <h3 className="text-xl font-semibold text-white">{fitting.name}</h3>
-                    <p className="text-gray-300">Тип: {fitting.type} ({fitting.subtype})</p>
-                    <p className="text-gray-300">Механизм: {fitting.mechanism}</p>
-                    <p className="text-gray-300">Опция: {fitting.specificOption}</p>
-                    <p className="text-gray-300">Бренд: {fitting.brand}</p>
-                    <p className="text-purple-500 font-bold mt-2">Цена: {fitting.price} руб.</p>
-                    <p className="text-gray-400 mt-2">{fitting.description}</p>
-                    <button
-                      onClick={() => saveResult(fitting)}
-                      className="mt-4 w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-md hover:from-blue-700 hover:to-blue-800 transition duration-200"
-                    >
-                      Сохранить
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">*Данная цена может варьироваться в зависимости от выбора продавца или поставщика</p>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-col md:flex-row justify-center mt-8 gap-4">
-                <button
-                  onClick={() => saveToPDF(false)}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transition duration-300 transform hover:scale-105 w-full md:w-auto"
-                >
-                  Экспорт выбранных в PDF
-                </button>
-                <button
-                  onClick={() => saveToPDF(true)}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transition duration-300 transform hover:scale-105 w-full md:w-auto mt-4 md:mt-0"
-                >
-                  Экспорт всего списка в PDF
-                </button>
-              </div>
-            </div>
-          )}
-
-          {savedResults.length > 0 && (
-            <div className="mt-10">
-              <h2 className="text-3xl font-semibold text-white mb-6 text-center bg-gradient-to-r from-indigo-400 to-purple-600 bg-clip-text">Сохранённые варианты:</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedResults.map(fitting => (
-                  <div
-                    key={fitting.id}
-                    className="bg-gray-700 rounded-xl shadow-md p-4 hover:bg-gray-600 transition duration-300"
-                  >
-                    <h3 className="text-xl font-semibold text-white">{fitting.name}</h3>
-                    <p className="text-gray-300">Цена: {fitting.price} руб.</p>
-                    <p className="text-gray-300">Бренд: {fitting.brand}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        React.createElement('div', { className: 'container-overlay configurator-container' },
+          React.createElement('h1', {
+            className: 'text-5xl font-bold text-center mb-10 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
+            'data-i18n': 'configurator_title'
+          }, i18next.t('configurator_title')),
+          React.createElement('div', { className: 'flex flex-col md:flex-row justify-center items-center gap-6 mb-10' },
+            React.createElement('div', { className: 'w-full md:w-1/4 tooltip' },
+              React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'type_label' }, i18next.t('type_label')),
+              React.createElement('span', { className: 'tooltip-text', 'data-i18n': 'type_tooltip' }, i18next.t('type_tooltip')),
+              React.createElement('select', {
+                value: type,
+                onChange: (e) => { setType(e.target.value); setSpecificOption(''); },
+                className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300'
+              },
+                React.createElement('option', { value: '', 'data-i18n': 'type_placeholder' }, i18next.t('type_placeholder')),
+                [...new Set(fittingsDatabase.map(f => f.type))].map(t =>
+                  React.createElement('option', { key: t, value: t }, t)
+                )
+              )
+            ),
+            React.createElement('div', { className: 'w-full md:w-1/4 tooltip' },
+              React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'brand_label' }, i18next.t('brand_label')),
+              React.createElement('span', { className: 'tooltip-text', 'data-i18n': 'brand_tooltip' }, i18next.t('brand_tooltip')),
+              React.createElement('select', {
+                value: brand,
+                onChange: (e) => setBrand(e.target.value),
+                className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300'
+              },
+                React.createElement('option', { value: '', 'data-i18n': 'brand_placeholder' }, i18next.t('brand_placeholder')),
+                ["GTV", "BOYARD", "DECOLINE", "MF"].map(b =>
+                  React.createElement('option', { key: b, value: b }, b)
+                )
+              )
+            )
+          ),
+          React.createElement('div', { className: 'price-inputs-container justify-center' },
+            React.createElement('div', { className: 'flex flex-col md:flex-row gap-6' },
+              React.createElement('div', { className: 'w-full md:w-1/4' },
+                React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'price_range_from' }, i18next.t('price_range_from')),
+                React.createElement('input', {
+                  type: 'number',
+                  name: 'min',
+                  value: priceRange.min,
+                  onChange: handlePriceRangeChange,
+                  className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300',
+                  min: '0'
+                })
+              ),
+              React.createElement('div', { className: 'w-full md:w-1/4' },
+                React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'price_range_to' }, i18next.t('price_range_to')),
+                React.createElement('input', {
+                  type: 'number',
+                  name: 'max',
+                  value: priceRange.max,
+                  onChange: handlePriceRangeChange,
+                  className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300',
+                  min: '0'
+                })
+              )
+            )
+          ),
+          type && React.createElement('div', { className: 'mb-8 text-center tooltip' },
+            React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'specific_option_label' }, i18next.t('specific_option_label')),
+            React.createElement('span', { className: 'tooltip-text', 'data-i18n': 'specific_option_tooltip' }, i18next.t('specific_option_tooltip')),
+            React.createElement('select', {
+              value: specificOption,
+              onChange: (e) => setSpecificOption(e.target.value),
+              className: 'mt-2 block w-full md:w-1/3 mx-auto rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300'
+            },
+              React.createElement('option', { value: '', 'data-i18n': 'specific_option_placeholder' }, i18next.t('specific_option_placeholder')),
+              specificOptions[type].map(option =>
+                React.createElement('option', { key: option, value: option }, option)
+              )
+            )
+          ),
+          React.createElement('div', { className: 'flex justify-center mb-8 gap-4' },
+            React.createElement('button', {
+              onClick: findBestOptions,
+              className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-6 py-3 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300 transform hover:scale-105',
+              'data-i18n': 'find_options'
+            }, i18next.t('find_options')),
+            React.createElement('button', {
+              onClick: () => sortResults(sortOrder === 'asc' ? 'desc' : 'asc'),
+              className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-6 py-3 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300 transform hover:scale-105',
+              'data-i18n': sortOrder === 'asc' ? 'sort_desc' : 'sort_asc'
+            }, i18next.t(sortOrder === 'asc' ? 'sort_desc' : 'sort_asc'))
+          ),
+          error && React.createElement('p', { className: 'text-red-400 text-center mb-4' }, error),
+          React.createElement('div', { className: 'tab-content' },
+            React.createElement('div', { className: 'tab-buttons flex justify-center mb-6' },
+              React.createElement('button', {
+                className: `tab-button ${activeTab === 'results' ? 'active' : ''}`,
+                onClick: () => setActiveTab('results'),
+                'data-i18n': 'tab_results'
+              }, i18next.t('tab_results')),
+              React.createElement('button', {
+                className: `tab-button ${activeTab === 'saved' ? 'active' : ''}`,
+                onClick: () => setActiveTab('saved'),
+                'data-i18n': 'tab_saved'
+              }, i18next.t('tab_saved')),
+              React.createElement('button', {
+                onClick: () => saveToPDF(false),
+                className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-4 py-2 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300',
+                'data-i18n': 'export_selected_pdf'
+              }, i18next.t('export_selected_pdf')),
+              React.createElement('button', {
+                onClick: () => saveToPDF(true),
+                className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-4 py-2 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300',
+                'data-i18n': 'export_all_pdf'
+              }, i18next.t('export_all_pdf'))
+            ),
+            activeTab === 'results' && results.length > 0 && React.createElement('div', null,
+              React.createElement('h2', {
+                className: 'text-4xl font-semibold text-white mb-8 text-center bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text',
+                'data-i18n': 'results_title'
+              }, i18next.t('results_title')),
+              React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' },
+                results.map(fitting =>
+                  React.createElement('div', {
+                    key: fitting.id,
+                    className: 'bg-gray-800 rounded-xl p-4 shadow-xl hover:bg-gray-700 hover:shadow-2xl transition-all duration-400 transform hover:-translate-y-2'
+                  },
+                    React.createElement('img', {
+                      src: fitting.image,
+                      alt: fitting.name,
+                      className: 'w-full h-48 object-cover rounded-lg mb-4'
+                    }),
+                    React.createElement('h3', { className: 'text-xl font-semibold text-green-300' }, `${i18next.t('name_label')}: ${fitting.name}`),
+                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('type')}: ${fitting.type}`),
+                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('subtype_label')}: ${fitting.subtype}`),
+                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('option')}: ${fitting.specificOption}`),
+                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('brand')}: ${fitting.brand}`),
+                    React.createElement('p', { className: 'text-purple-400 font-bold mt-2' }, `${i18next.t('price')}: ${fitting.price} руб.`),
+                    React.createElement('p', { className: 'text-gray-400 mt-2' }, `${i18next.t('description')}: ${fitting.description}`),
+                    React.createElement('button', {
+                      onClick: () => saveResult(fitting),
+                      className: 'bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 mt-4 transition duration-300',
+                      'data-i18n': 'save'
+                    }, i18next.t('save')),
+                    React.createElement('p', { className: 'text-xs text-gray-500 mt-2', 'data-i18n': 'price_disclaimer' }, i18next.t('price_disclaimer'))
+                  )
+                )
+              )
+            ),
+            activeTab === 'saved' && savedResults.length > 0 && React.createElement('div', null,
+              React.createElement('h2', {
+                className: 'text-4xl font-semibold text-white mb-8 text-center bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text',
+                'data-i18n': 'saved_results_title'
+              }, i18next.t('saved_results_title')),
+              React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' },
+                savedResults.map(fitting =>
+                  React.createElement('div', {
+                    key: fitting.id,
+                    className: 'bg-gray-700 rounded-xl p-4 shadow-md hover:bg-gray-600 transition duration-300'
+                  },
+                    React.createElement('h3', { className: 'text-xl font-semibold text-green-300' }, `${i18next.t('name_label')}: ${fitting.name}`),
+                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('price')}: ${fitting.price} руб.`),
+                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('description')}: ${fitting.description}`)
+                  )
+                )
+              )
+            )
+          )
+        )
       );
     };
 
-    ReactDOM.render(<App />, document.getElementById('root'));
+    const AboutPage = () => (
+      React.createElement('div', { className: 'about-container' },
+        React.createElement('h2', { className: 'text-4xl font-bold', 'data-i18n': 'about_title' }, i18next.t('about_title')),
+        React.createElement('p', { 'data-i18n': 'about_text' }, i18next.t('about_text'))
+      )
+    );
+
+    const PromotionsPage = () => (
+      React.createElement('div', { className: 'container-overlay' },
+        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text', 'data-i18n': 'promotions_title' }, i18next.t('promotions_title')),
+        React.createElement('div', { className: 'promotion-card' },
+          React.createElement('p', { 'data-i18n': 'promotion_gtv_discount' }, i18next.t('promotion_gtv_discount'))
+        ),
+        React.createElement('div', { className: 'promotion-card' },
+          React.createElement('p', { 'data-i18n': 'promotion_free_delivery' }, i18next.t('promotion_free_delivery'))
+        )
+      )
+    );
+
+    const WarehousePage = () => (
+      React.createElement('div', { className: 'tour-container' },
+        React.createElement('h2', { className: 'text-4xl font-bold mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text', 'data-i18n': 'warehouse_title' }, i18next.t('warehouse_title')),
+        React.createElement('p', { className: 'mb-6', 'data-i18n': 'warehouse_text' }, i18next.t('warehouse_text')),
+        React.createElement('iframe', {
+          src: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+          title: 'Virtual Tour',
+          frameBorder: '0',
+          allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
+          allowFullScreen: true
+        })
+      )
+    );
+
+    const ContactsPage = () => (
+      React.createElement('div', { className: 'container-overlay' },
+        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text', 'data-i18n': 'contacts_title' }, i18next.t('contacts_title')),
+        React.createElement('p', { className: 'mb-6 text-center', 'data-i18n': 'contacts_text' }, i18next.t('contacts_text'))
+      )
+    );
+
+    const ReviewsPage = () => (
+      React.createElement('div', { className: 'container-overlay' },
+        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text', 'data-i18n': 'reviews_title' }, i18next.t('reviews_title')),
+        React.createElement('p', { className: 'mb-6 text-center', 'data-i18n': 'reviews_text' }, i18next.t('reviews_text'))
+      )
+    );
+
+    const App = () => {
+      const [currentPage, setCurrentPage] = useState('welcome');
+      const [language, setLanguage] = useState('ru');
+
+      const renderPage = () => {
+        switch (currentPage) {
+          case 'welcome': return React.createElement(WelcomePage, { onNavigate: () => setCurrentPage('configurator') });
+          case 'configurator': return React.createElement(ConfiguratorPage, { language });
+          case 'about': return React.createElement(AboutPage);
+          case 'warehouse': return React.createElement(WarehousePage);
+          case 'promotions': return React.createElement(PromotionsPage);
+          case 'contacts': return React.createElement(ContactsPage);
+          case 'reviews': return React.createElement(ReviewsPage);
+          default: return React.createElement(WelcomePage, { onNavigate: () => setCurrentPage('configurator') });
+        }
+      };
+
+      return (
+        React.createElement(React.Fragment, null,
+          React.createElement(Navbar, { setCurrentPage, onLanguageChange: setLanguage }),
+          renderPage()
+        )
+      );
+    };
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
   </script>
 </body>
 </html>
