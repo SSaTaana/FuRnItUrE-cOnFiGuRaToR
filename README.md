@@ -288,7 +288,10 @@
       color: #A855F7; /* Фиолетовый цвет цены в темной теме */
     }
     .light-theme .card-description p {
-      color: #FFFFFF !important; /* Белый цвет описания в светлой теме, !important для переопределения */
+      color: #FFFFFF !important; /* Белый цвет описания в светлой теме */
+    }
+    .light-theme .card-description h3 {
+      color: #FFFFFF !important; /* Белый цвет наименований в светлой теме */
     }
   </style>
 </head>
@@ -539,7 +542,7 @@
       const [error, setError] = useState('');
       const [sortOrder, setSortOrder] = useState('none');
 
-    const fittingsDatabase = [
+      const fittingsDatabase = [
         { id: 1, name: "Петля угловая стандартная", type: "Петля", subtype: "Угловая", mechanism: "Без доводчика", specificOption: "Стандартная", brand: "GTV", price: 500, description: "Надёжная угловая петля для шкафов.", image: "https://avatars.mds.yandex.net/i?id=6c6f936f9f225749da710eacb5cccc32426fde80-8132087-images-thumbs&n=13" },
         { id: 2, name: "Петля накладная с доводчиком", type: "Петля", subtype: "Накладная", mechanism: "С доводчиком", specificOption: "С доводчиком", brand: "BOYARD", price: 800, description: "Накладная петля с плавным закрыванием.", image: "https://www.boyard.biz/thumbs/original/products/h301a020930/36e376c9887d25fa4c777f18305719e2.jpg" },
         { id: 3, name: "Петля врезная push-to-open", type: "Петля", subtype: "Врезная", mechanism: "Push-to-open", specificOption: "Push-to-open", brand: "DECOLINE", price: 1200, description: "Врезная петля с push-механизмом.", image: "https://gratis72.ru/upload/iblock/493/tehvfjk7lpyrz06nq7qb77sv6lj4drk1/08558114_fe74_11ec_b964_00155d936a00_5a75ba8f_fe7c_11ec_b964_00155d936a00.png" },
@@ -659,12 +662,11 @@
         setResults(updatedFittings);
       };
 
-      const saveToPDF = (allResults = false) => {
-        const content = allResults ? [...results, ...savedResults] : results;
+      const saveToPDF = (resultsToExport) => {
         const docDefinition = {
           content: [
-            { text: allResults ? i18next.t('export_all_pdf') : i18next.t('export_selected_pdf'), style: 'header' },
-            ...content.map(fitting => ({
+            { text: i18next.t('export_all_pdf'), style: 'header' },
+            ...resultsToExport.map(fitting => ({
               text: [
                 `${i18next.t('name_label')}: ${fitting.name}\n`,
                 `${i18next.t('type')}: ${i18next.t(fitting.type)}\n`,
@@ -680,7 +682,7 @@
             header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10], color: '#000000' }
           }
         };
-        pdfMake.createPdf(docDefinition).download(`fittings_results_${allResults ? 'all' : 'selected'}.pdf`);
+        pdfMake.createPdf(docDefinition).download('fittings_results.pdf');
       };
 
       const saveResult = (fitting) => {
@@ -695,7 +697,7 @@
         if (order === 'asc') {
           sorted.sort((a, b) => a.price - b.price);
         } else if (order === 'desc') {
-          sorted.sort((a, b) => b.price - a.price); // Исправлено: b.price - a.price
+          sorted.sort((a, b) => b.price - a.price);
         }
         setResults(sorted);
       };
@@ -832,19 +834,25 @@
                   results.map(fitting => (
                     React.createElement('div', { key: fitting.id, className: 'p-4 bg-gray-800 rounded-lg shadow-lg light-theme:bg-gray-100 card-description' },
                       React.createElement('img', { src: fitting.image, alt: fitting.name, className: 'fittings-image w-full mb-4 rounded' }),
-                      React.createElement('h3', { className: 'text-xl font-semibold' }, fitting.name),
+                      React.createElement('h3', { className: 'text-xl font-semibold mb-2' }, fitting.name),
                       React.createElement('p', null, `${i18next.t('type')}: ${i18next.t(fitting.type)}`),
                       React.createElement('p', null, `${i18next.t('subtype_label')}: ${i18next.t(fitting.subtype)}`),
                       React.createElement('p', null, `${i18next.t('option')}: ${i18next.t(fitting.specificOption)}`),
                       React.createElement('p', null, `${i18next.t('brand')}: ${i18next.t(fitting.brand)}`),
                       React.createElement('p', null, `${i18next.t('description')}: ${fitting.description}`),
                       React.createElement('p', { className: 'price-text' }, `${i18next.t('price')}: ${fitting.price} руб.`),
-                      React.createElement('p', null, i18next.t('price_disclaimer'))
+                      React.createElement('p', null, i18next.t('price_disclaimer')),
+                      React.createElement('button', {
+                        onClick: () => saveResult(fitting),
+                        className: 'gradient-button mt-2'
+                      },
+                        React.createElement('span', { 'data-i18n': 'save' }, i18next.t('save'))
+                      )
                     )
                   ))
                 ),
                 results.length > 0 && React.createElement('button', {
-                  onClick: () => saveToPDF(false),
+                  onClick: () => saveToPDF(results),
                   className: 'gradient-button mt-6'
                 },
                   React.createElement('span', { 'data-i18n': 'export_selected_pdf' }, i18next.t('export_selected_pdf'))
@@ -861,19 +869,25 @@
                   savedResults.map(fitting => (
                     React.createElement('div', { key: fitting.id, className: 'p-4 bg-gray-800 rounded-lg shadow-lg light-theme:bg-gray-100 card-description' },
                       React.createElement('img', { src: fitting.image, alt: fitting.name, className: 'fittings-image w-full mb-4 rounded' }),
-                      React.createElement('h3', { className: 'text-xl font-semibold' }, fitting.name),
+                      React.createElement('h3', { className: 'text-xl font-semibold mb-2' }, fitting.name),
                       React.createElement('p', null, `${i18next.t('type')}: ${i18next.t(fitting.type)}`),
                       React.createElement('p', null, `${i18next.t('subtype_label')}: ${i18next.t(fitting.subtype)}`),
                       React.createElement('p', null, `${i18next.t('option')}: ${i18next.t(fitting.specificOption)}`),
                       React.createElement('p', null, `${i18next.t('brand')}: ${i18next.t(fitting.brand)}`),
                       React.createElement('p', null, `${i18next.t('description')}: ${fitting.description}`),
                       React.createElement('p', { className: 'price-text' }, `${i18next.t('price')}: ${fitting.price} руб.`),
-                      React.createElement('p', null, i18next.t('price_disclaimer'))
+                      React.createElement('p', null, i18next.t('price_disclaimer')),
+                      React.createElement('button', {
+                        onClick: () => saveResult(fitting),
+                        className: 'gradient-button mt-2'
+                      },
+                        React.createElement('span', { 'data-i18n': 'save' }, i18next.t('save'))
+                      )
                     )
                   ))
                 ),
                 savedResults.length > 0 && React.createElement('button', {
-                  onClick: () => saveToPDF(true),
+                  onClick: () => saveToPDF(savedResults),
                   className: 'gradient-button mt-6'
                 },
                   React.createElement('span', { 'data-i18n': 'export_all_pdf' }, i18next.t('export_all_pdf'))
