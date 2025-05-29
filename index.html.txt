@@ -12,13 +12,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/i18next@23.11.5/dist/umd/i18next.min.js"></script>
   <style>
-    body {
+    body.dark-theme {
       background: linear-gradient(135deg, #0d1b2a, #1b263b);
-      min-height: 100vh;
-      font-family: 'Arial', sans-serif;
       color: #e0e1dd;
-      position: relative;
-      overflow-x: hidden;
+    }
+    body.light-theme {
+      background: linear-gradient(135deg, #E8F5E9, #C8E6C9); /* Более выраженный светло-изумрудный отлив */
+      color: #333;
     }
     .container-overlay, .welcome-container {
       background: rgba(255, 255, 255, 0.1);
@@ -31,6 +31,10 @@
       margin: 2rem auto;
       transition: transform 0.5s ease, opacity 0.5s ease;
     }
+    .light-theme .container-overlay, .light-theme .welcome-container {
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
     .welcome-container {
       max-width: 45rem;
       text-align: center;
@@ -38,6 +42,7 @@
     }
     .configurator-container {
       animation: fadeInUp 1s ease-out;
+      margin-top: 8rem;
     }
     .edge-animation {
       position: fixed;
@@ -50,19 +55,89 @@
     }
     .edge-animation.left { left: 0; }
     .edge-animation.right { right: 0; background: linear-gradient(270deg, rgba(138, 43, 226, 0.3), transparent); }
-    .navbar { position: fixed; top: 0; width: 100%; background: linear-gradient(90deg, #0d1b2a, #415a77); padding: 1.5rem 0; z-index: 20; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); }
-    .price-inputs-container { display: flex; flex-direction: row; gap: 2rem; align-items: flex-start; margin-bottom: 2rem; }
-    .tab-buttons { display: flex; gap: 1rem; align-items: center; z-index: 10; }
-    .tab-button { background: rgba(255, 255, 255, 0.15); border-radius: 0.75rem; padding: 0.75rem 1.5rem; color: #e0e1dd; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
-    .tab-button.active { background: linear-gradient(45deg, #00ff96, #8a2be2); color: #fff; transform: scale(1.05); }
-    .tab-content { margin-top: 7rem; }
-    .tooltip .tooltip-text { visibility: hidden; width: 220px; background: rgba(0, 0, 0, 0.7); color: #d1e8e2; text-align: center; border-radius: 0.5rem; padding: 0.5rem; position: absolute; z-index: 1; left: -240px; top: 50%; transform: translateY(-50%); opacity: 0; transition: opacity 0.3s ease; }
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: linear-gradient(90deg, #0d1b2a, #415a77);
+      padding: 1.5rem 0;
+      z-index: 20;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+    .light-theme .navbar {
+      background: linear-gradient(90deg, #2E7D32, #43A047); /* Темно-изумрудный фон для вкладок */
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .price-inputs-container {
+      display: flex;
+      flex-direction: row;
+      gap: 2rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+      width: 100%;
+    }
+    .price-inputs-container div {
+      flex: 1;
+      max-width: 200px;
+    }
+    .tab-buttons {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem 0;
+      margin-top: 1rem;
+    }
+    .tab-button, .gradient-button {
+      background: linear-gradient(45deg, #00ff96, #8a2be2);
+      background-size: 200% 200%;
+      animation: pulse 2s infinite;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      border: 2px solid transparent;
+    }
+    .tab-button.active {
+      transform: scale(1.05);
+      border-color: #00ff96;
+    }
+    .tab-button span, .gradient-button span {
+      color: white; /* Статичный белый цвет текста */
+    }
+    .tab-content {
+      margin-top: 18rem;
+    }
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 220px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #d1e8e2;
+      text-align: center;
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      position: absolute;
+      z-index: 1;
+      left: -240px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .light-theme .tooltip .tooltip-text {
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+    }
     .tooltip:hover .tooltip-text { visibility: visible; opacity: 0.95; }
     @keyframes fadeInSlide { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
     @keyframes fadeInUp { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
     @keyframes slideUp { 0% { opacity: 0; transform: translateY(50px); } 100% { opacity: 1; transform: translateY(0); } }
     @keyframes tourFadeIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
     @keyframes edgePulse { 0% { opacity: 0.4; } 50% { opacity: 0.9; } 100% { opacity: 0.4; } }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @media (max-width: 640px) {
       .container-overlay, .welcome-container { padding: 1rem; margin: 3rem 0.5rem; }
       .welcome-container { margin: 5rem 0.5rem; }
@@ -73,27 +148,125 @@
       .navbar { padding: 0.75rem 0; }
       .navbar a { font-size: 0.95rem; padding: 0.5rem; }
       .price-inputs-container { flex-direction: column; align-items: center; }
-      .tab-buttons { flex-direction: column; width: 100%; margin-top: 1rem; }
+      .price-inputs-container div { max-width: 100%; }
+      .tab-buttons { flex-direction: column; width: 100%; margin-top: 1rem; padding: 0.5rem 0; }
       .tab-button { width: 100%; text-align: center; padding: 0.5rem; font-size: 0.95rem; }
-      .tab-content { margin-top: 5rem; }
-      select, input { font-size: 1rem; padding: 0.75rem; }
-      button { font-size: 1rem; padding: 0.75rem; }
+      .tab-content { margin-top: 12rem; }
+      select, input { font-size: 1rem; padding: 0.75rem; width: 100%; }
+      button { font-size: 1rem; padding: 0.75rem; width: 100%; }
+      .configurator-container { margin-top: 6rem; }
     }
-    .about-container { background: linear-gradient(135deg, rgba(0, 255, 150, 0.2), rgba(0, 0, 0, 0.9)); border-radius: 1.5rem; padding: 2.5rem; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8); text-align: center; max-width: 55rem; margin: 7rem auto; animation: fadeInUp 1s ease-out; }
+    .about-container {
+      background: linear-gradient(135deg, rgba(0, 255, 150, 0.2), rgba(0, 0, 0, 0.9));
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+      text-align: center;
+      max-width: 55rem;
+      margin: 7rem auto;
+      animation: fadeInUp 1s ease-out;
+    }
+    .light-theme .about-container {
+      background: linear-gradient(135deg, rgba(0, 255, 150, 0.1), rgba(255, 255, 255, 0.9));
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
     .about-container h2 { font-size: 2.2rem; color: #00ff96; margin-bottom: 1.5rem; }
+    .light-theme .about-container h2 { color: #8a2be2; }
     .about-container p { font-size: 1.2rem; color: #d1e8e2; line-height: 1.7; }
-    .promotion-card { background: rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 1.5rem; margin: 1rem 0; transition: transform 0.4s ease, box-shadow 0.4s ease; animation: slideUp 0.8s ease-out; }
+    .light-theme .about-container p { color: #333; }
+    .promotion-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      animation: slideUp 0.8s ease-out;
+    }
+    .light-theme .promotion-card {
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
     .promotion-card:hover { transform: translateY(-10px) rotate(2deg); box-shadow: 0 15px 30px rgba(0, 255, 150, 0.3); }
-    .tour-container { max-width: 90rem; margin: 7rem auto; text-align: center; opacity: 0; animation: tourFadeIn 1s ease-out forwards; animation-delay: 0.2s; }
-    .tour-container iframe { width: 100%; height: 450px; border-radius: 1.5rem; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8); transition: transform 0.5s ease; }
+    .tour-container {
+      max-width: 90rem;
+      margin: 7rem auto;
+      text-align: center;
+      opacity: 0;
+      animation: tourFadeIn 1s ease-out forwards;
+      animation-delay: 0.2s;
+    }
+    .tour-container iframe {
+      width: 100%;
+      height: 450px;
+      border-radius: 1.5rem;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+      transition: transform 0.5s ease;
+    }
+    .light-theme .tour-container iframe {
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
     .tour-container:hover iframe { transform: scale(1.02); }
     @media (max-width: 640px) {
       .tour-container { margin: 5rem 0.5rem; }
       .tour-container iframe { height: 300px; }
     }
+    .sort-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .sort-dropdown button {
+      background: linear-gradient(45deg, #00ff96, #8a2be2);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+    .sort-dropdown:hover .dropdown-content {
+      display: block;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background: rgba(0, 0, 0, 0.7);
+      min-width: 160px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      border-radius: 0.5rem;
+    }
+    .light-theme .dropdown-content {
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    .dropdown-content a {
+      color: #d1e8e2;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      display: block;
+    }
+    .light-theme .dropdown-content a {
+      color: #333;
+    }
+    .dropdown-content a:hover { background: #00ff96; color: #1b263b; }
+    .light-theme .dropdown-content a:hover { background: #8a2be2; color: #fff; }
+    .configurator-label {
+      font-size: 1.5rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, #00ff96, #8a2be2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .light-theme .configurator-label {
+      background: linear-gradient(90deg, #00ff96, #8a2be2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
   </style>
 </head>
-<body className="flex flex-col min-h-screen p-4">
+<body className="flex flex-col min-h-screen p-4 dark-theme">
   <div className="edge-animation left"></div>
   <div className="edge-animation right"></div>
   <div id="root"></div>
@@ -108,8 +281,8 @@
           translation: {
             "welcome_title": "Добро пожаловать!",
             "welcome_text": "Откройте мир мебельной фурнитуры с нашим удобным конфигуратором.",
-            "go_to_configurator": "Начать настройку",
-            "configurator_title": "Конфигуратор фурнитуры",
+            "go_to_configurator": "Начать",
+            "configurator_title": "Конфигуратор мебельной фурнитуры",
             "type_label": "Тип фурнитуры",
             "type_placeholder": "Выберите тип",
             "type_tooltip": "Выберите тип, например, петли или ручки.",
@@ -127,23 +300,24 @@
             "tab_saved": "Сохранённые",
             "save": "Сохранить",
             "saved_results_title": "Сохранённые варианты:",
-            "export_selected_pdf": "Экспорт выбранных",
-            "export_all_pdf": "Экспорт всех",
+            "export_selected_pdf": "Экспорт в PDF",
+            "export_all_pdf": "Экспорт в PDF",
             "no_match": "Совпадений нет. Показываем похожие.",
             "price_disclaimer": "*Цена может варьироваться",
             "about_title": "О нас",
-            "about_text": "Мы предлагаем инновационный конфигуратор для выбора фурнитуры с актуальными данными.",
+            "about_text": "Мы представляем свой конфигуратор, который может помочь вам с первичными видами и типами определенной мебельной фурнитуры, поможем узнать среднюю цену, анализируя разные сайты поставщиков и продавцов. Наша цель — упростить ваш выбор, предоставляя актуальную информацию и удобный интерфейс для поиска идеального решения.",
             "nav_home": "Главная",
             "nav_configurator": "Конфигуратор",
             "nav_about": "О нас",
             "nav_warehouse": "Виртуальный тур",
             "nav_promotions": "Акции",
             "nav_contacts": "Контакты",
-            "nav_reviews": "Отзывы",
             "lang_ru": "Русский",
             "lang_en": "English",
+            "theme_dark": "Темная тема",
+            "theme_light": "Светлая тема",
             "name_label": "Наименование",
-            "type": "Тип",
+            "type": "Петля",
             "subtype_label": "Подтип",
             "option": "Опция",
             "brand": "Бренд",
@@ -156,18 +330,37 @@
             "warehouse_text": "Погрузитесь в мир нашей фурнитуры!",
             "contacts_title": "Свяжитесь с нами",
             "contacts_text": "Оставьте заявку для консультации.",
-            "reviews_title": "Отзывы клиентов",
-            "reviews_text": "Поделитесь своим опытом!",
-            "sort_asc": "Сортировать по возрастанию",
-            "sort_desc": "Сортировать по убыванию"
+            "sort_asc": "По возрастанию",
+            "sort_desc": "По убыванию",
+            "sort_label": "Сортировать",
+            "Hinge": "Петля",
+            "Corner": "Угловая",
+            "Overlay": "Накладная",
+            "Inset": "Врезная",
+            "Push-to-open": "Push-to-open",
+            "Reinforced": "Усиленная",
+            "Guide": "Направляющая",
+            "Ball-bearing": "Шариковая",
+            "Roller": "Роликовая",
+            "Handle": "Ручка",
+            "Round": "Круглая",
+            "Long": "Длинная",
+            "Rail": "Рейлинг",
+            "Mounting": "Крепление",
+            "Hidden": "Скрытое",
+            "Adjustable": "Регулируемое",
+            "Standard": "Стандартная",
+            "With soft-close": "С доводчиком",
+            "Light": "Лёгкая",
+            "Basic": "Базовое"
           }
         },
         en: {
           translation: {
             "welcome_title": "Welcome!",
             "welcome_text": "Discover the world of furniture fittings with our configurator.",
-            "go_to_configurator": "Start Configuration",
-            "configurator_title": "Fittings Configurator",
+            "go_to_configurator": "Start",
+            "configurator_title": "Furniture Fittings Configurator",
             "type_label": "Fitting Type",
             "type_placeholder": "Select type",
             "type_tooltip": "Select a type, e.g., hinges or handles.",
@@ -185,23 +378,24 @@
             "tab_saved": "Saved",
             "save": "Save",
             "saved_results_title": "Saved Options:",
-            "export_selected_pdf": "Export Selected",
-            "export_all_pdf": "Export All",
+            "export_selected_pdf": "Export to PDF",
+            "export_all_pdf": "Export to PDF",
             "no_match": "No matches. Showing similar.",
             "price_disclaimer": "*Price may vary",
             "about_title": "About Us",
-            "about_text": "We offer an innovative configurator with up-to-date fitting data.",
+            "about_text": "We present our configurator, which can help you with primary types and categories of specific furniture fittings, helping you determine average prices by analyzing various supplier and seller websites. Our goal is to simplify your choice by providing up-to-date information and a user-friendly interface to find the perfect solution.",
             "nav_home": "Home",
             "nav_configurator": "Configurator",
             "nav_about": "About Us",
             "nav_warehouse": "Virtual Tour",
             "nav_promotions": "Promotions",
             "nav_contacts": "Contacts",
-            "nav_reviews": "Reviews",
             "lang_ru": "Русский",
             "lang_en": "English",
+            "theme_dark": "Dark Theme",
+            "theme_light": "Light Theme",
             "name_label": "Name",
-            "type": "Type",
+            "type": "Hinge",
             "subtype_label": "Subtype",
             "option": "Option",
             "brand": "Brand",
@@ -214,16 +408,35 @@
             "warehouse_text": "Dive into our fittings world!",
             "contacts_title": "Contact Us",
             "contacts_text": "Leave a request for consultation.",
-            "reviews_title": "Customer Reviews",
-            "reviews_text": "Share your experience!",
-            "sort_asc": "Sort Ascending",
-            "sort_desc": "Sort Descending"
+            "sort_asc": "Ascending",
+            "sort_desc": "Descending",
+            "sort_label": "Sort",
+            "Hinge": "Hinge",
+            "Corner": "Corner",
+            "Overlay": "Overlay",
+            "Inset": "Inset",
+            "Push-to-open": "Push-to-open",
+            "Reinforced": "Reinforced",
+            "Guide": "Guide",
+            "Ball-bearing": "Ball-bearing",
+            "Roller": "Roller",
+            "Handle": "Handle",
+            "Round": "Round",
+            "Long": "Long",
+            "Rail": "Rail",
+            "Mounting": "Mounting",
+            "Hidden": "Hidden",
+            "Adjustable": "Adjustable",
+            "Standard": "Standard",
+            "With soft-close": "With soft-close",
+            "Light": "Light",
+            "Basic": "Basic"
           }
         }
       }
     });
 
-    const Navbar = ({ setCurrentPage, onLanguageChange }) => {
+    const Navbar = ({ setCurrentPage, onLanguageChange, toggleTheme, currentTheme }) => {
       const changeLanguage = (lng) => {
         i18next.changeLanguage(lng);
         onLanguageChange(lng);
@@ -237,56 +450,55 @@
           React.createElement('a', {
             href: '#',
             onClick: () => setCurrentPage('welcome'),
-            className: 'text-white hover:text-green-400 transition duration-300',
+            className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
             'data-i18n': 'nav_home'
           }, i18next.t('nav_home')),
           React.createElement('a', {
             href: '#',
             onClick: () => setCurrentPage('configurator'),
-            className: 'text-white hover:text-green-400 transition duration-300',
+            className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
             'data-i18n': 'nav_configurator'
           }, i18next.t('nav_configurator')),
           React.createElement('a', {
             href: '#',
             onClick: () => setCurrentPage('about'),
-            className: 'text-white hover:text-green-400 transition duration-300',
+            className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
             'data-i18n': 'nav_about'
           }, i18next.t('nav_about')),
           React.createElement('a', {
             href: '#',
             onClick: () => setCurrentPage('warehouse'),
-            className: 'text-white hover:text-green-400 transition duration-300',
+            className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
             'data-i18n': 'nav_warehouse'
           }, i18next.t('nav_warehouse')),
           React.createElement('a', {
             href: '#',
             onClick: () => setCurrentPage('promotions'),
-            className: 'text-white hover:text-green-400 transition duration-300',
+            className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
             'data-i18n': 'nav_promotions'
           }, i18next.t('nav_promotions')),
           React.createElement('a', {
             href: '#',
             onClick: () => setCurrentPage('contacts'),
-            className: 'text-white hover:text-green-400 transition duration-300',
+            className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
             'data-i18n': 'nav_contacts'
           }, i18next.t('nav_contacts')),
-          React.createElement('a', {
-            href: '#',
-            onClick: () => setCurrentPage('reviews'),
-            className: 'text-white hover:text-green-400 transition duration-300',
-            'data-i18n': 'nav_reviews'
-          }, i18next.t('nav_reviews')),
           React.createElement('div', { className: 'flex gap-2' },
             React.createElement('button', {
               onClick: () => changeLanguage('ru'),
-              className: 'text-white hover:text-green-400 transition duration-300',
+              className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
               'data-i18n': 'lang_ru'
             }, i18next.t('lang_ru')),
             React.createElement('button', {
               onClick: () => changeLanguage('en'),
-              className: 'text-white hover:text-green-400 transition duration-300',
+              className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
               'data-i18n': 'lang_en'
-            }, i18next.t('lang_en'))
+            }, i18next.t('lang_en')),
+            React.createElement('button', {
+              onClick: toggleTheme,
+              className: 'text-white hover:text-green-400 transition duration-300 light-theme:text-black light-theme:hover:text-purple-600',
+              'data-i18n': currentTheme === 'dark' ? 'theme_light' : 'theme_dark'
+            }, i18next.t(currentTheme === 'dark' ? 'theme_light' : 'theme_dark'))
           )
         )
       );
@@ -299,12 +511,13 @@
             className: 'text-5xl font-bold mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
             'data-i18n': 'welcome_title'
           }, i18next.t('welcome_title')),
-          React.createElement('p', { className: 'text-gray-300 mb-10', 'data-i18n': 'welcome_text' }, i18next.t('welcome_text')),
+          React.createElement('p', { className: 'text-gray-300 mb-10 light-theme:text-gray-600', 'data-i18n': 'welcome_text' }, i18next.t('welcome_text')),
           React.createElement('button', {
             onClick: onNavigate,
-            className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-8 py-4 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300 transform hover:scale-110',
-            'data-i18n': 'go_to_configurator'
-          }, i18next.t('go_to_configurator'))
+            className: 'gradient-button'
+          },
+            React.createElement('span', { 'data-i18n': 'go_to_configurator' }, i18next.t('go_to_configurator'))
+          )
         )
       );
     };
@@ -384,13 +597,26 @@
       ];
 
       const specificOptions = {
-        "Петля": ["Стандартная", "С доводчиком", "Push-to-open", "Усиленная"],
-        "Направляющая": ["Стандартная", "С доводчиком", "Лёгкая"],
-        "Ручка": ["Классическая", "Рейлинг"],
-        "Крепление": ["Базовое", "Регулируемое"]
+        "Hinge": ["Standard", "With soft-close", "Push-to-open", "Reinforced"],
+        "Guide": ["Standard", "With soft-close", "Light"],
+        "Handle": ["Standard", "Rail"],
+        "Mounting": ["Basic", "Adjustable"]
       };
 
-      const findBestOptions = () => {
+      const fetchPricesFromAPI = async (fittings) => {
+        // Заглушка для API: имитация получения цен с маркетплейса
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            const updatedFittings = fittings.map(fitting => ({
+              ...fitting,
+              price: fitting.price + Math.floor(Math.random() * 200) - 100 // Имитация изменения цены
+            }));
+            resolve(updatedFittings);
+          }, 1000);
+        });
+      };
+
+      const findBestOptions = async () => {
         if (!fittingsDatabase || fittingsDatabase.length === 0) {
           setError(i18next.t('no_match'));
           return;
@@ -406,14 +632,18 @@
           return typeMatch && specificOptionMatch && brandMatch && priceMinMatch && priceMaxMatch;
         });
 
+        let finalFittings = filteredFittings;
         if (filteredFittings.length === 0) {
           setError(i18next.t('no_match'));
           const fallback = type ? fittingsDatabase.find(f => f.type === type) : fittingsDatabase[0];
-          setResults(fallback ? [fallback] : []);
+          finalFittings = fallback ? [fallback] : [];
         } else {
           setError('');
-          setResults(filteredFittings);
         }
+
+        // Обновление цен через API
+        const updatedFittings = await fetchPricesFromAPI(finalFittings);
+        setResults(updatedFittings);
       };
 
       const saveToPDF = (allResults = false) => {
@@ -424,9 +654,10 @@
             ...content.map(fitting => ({
               text: [
                 `${i18next.t('name_label')}: ${fitting.name}\n`,
-                `${i18next.t('type')}: ${fitting.type} (${fitting.subtype})\n`,
-                `${i18next.t('option')}: ${fitting.specificOption}\n`,
-                `${i18next.t('brand')}: ${fitting.brand}\n`,
+                `${i18next.t('type')}: ${i18next.t(fitting.type)}\n`,
+                `${i18next.t('subtype_label')}: ${i18next.t(fitting.subtype)}\n`,
+                `${i18next.t('option')}: ${i18next.t(fitting.specificOption)}\n`,
+                `${i18next.t('brand')}: ${i18next.t(fitting.brand)}\n`,
                 `${i18next.t('price')}: ${fitting.price} руб.\n`,
                 `${i18next.t('description')}: ${fitting.description}\n\n`
               ]
@@ -468,162 +699,172 @@
       return (
         React.createElement('div', { className: 'container-overlay configurator-container' },
           React.createElement('h1', {
-            className: 'text-5xl font-bold text-center mb-10 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
+            className: 'text-5xl font-bold text-center mb-12 mt-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
             'data-i18n': 'configurator_title'
           }, i18next.t('configurator_title')),
           React.createElement('div', { className: 'flex flex-col md:flex-row justify-center items-center gap-6 mb-10' },
             React.createElement('div', { className: 'w-full md:w-1/4 tooltip' },
-              React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'type_label' }, i18next.t('type_label')),
+              React.createElement('label', { className: 'configurator-label block text-center', 'data-i18n': 'type_label' }, i18next.t('type_label')),
               React.createElement('span', { className: 'tooltip-text', 'data-i18n': 'type_tooltip' }, i18next.t('type_tooltip')),
               React.createElement('select', {
                 value: type,
                 onChange: (e) => { setType(e.target.value); setSpecificOption(''); },
-                className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300'
+                className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300 light-theme:bg-white light-theme:text-black light-theme:border-gray-300'
               },
                 React.createElement('option', { value: '', 'data-i18n': 'type_placeholder' }, i18next.t('type_placeholder')),
                 [...new Set(fittingsDatabase.map(f => f.type))].map(t =>
-                  React.createElement('option', { key: t, value: t }, t)
+                  React.createElement('option', { key: t, value: t }, i18next.t(t))
                 )
               )
             ),
             React.createElement('div', { className: 'w-full md:w-1/4 tooltip' },
-              React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'brand_label' }, i18next.t('brand_label')),
+              React.createElement('label', { className: 'configurator-label block text-center', 'data-i18n': 'brand_label' }, i18next.t('brand_label')),
               React.createElement('span', { className: 'tooltip-text', 'data-i18n': 'brand_tooltip' }, i18next.t('brand_tooltip')),
               React.createElement('select', {
                 value: brand,
                 onChange: (e) => setBrand(e.target.value),
-                className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300'
+                className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300 light-theme:bg-white light-theme:text-black light-theme:border-gray-300'
               },
                 React.createElement('option', { value: '', 'data-i18n': 'brand_placeholder' }, i18next.t('brand_placeholder')),
                 ["GTV", "BOYARD", "DECOLINE", "MF"].map(b =>
-                  React.createElement('option', { key: b, value: b }, b)
+                  React.createElement('option', { key: b, value: b }, i18next.t(b))
                 )
               )
             )
           ),
-          React.createElement('div', { className: 'price-inputs-container justify-center' },
-            React.createElement('div', { className: 'flex flex-col md:flex-row gap-6' },
-              React.createElement('div', { className: 'w-full md:w-1/4' },
-                React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'price_range_from' }, i18next.t('price_range_from')),
+          React.createElement('div', { className: 'price-inputs-container' },
+            React.createElement('div', { className: 'flex flex-col md:flex-row gap-6 justify-center' },
+              React.createElement('div', null,
+                React.createElement('label', { className: 'configurator-label block text-center', 'data-i18n': 'price_range_from' }, i18next.t('price_range_from')),
                 React.createElement('input', {
                   type: 'number',
                   name: 'min',
                   value: priceRange.min,
                   onChange: handlePriceRangeChange,
-                  className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300',
-                  min: '0'
+                  className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300 text-center light-theme:bg-white light-theme:text-black light-theme:border-gray-300'
                 })
               ),
-              React.createElement('div', { className: 'w-full md:w-1/4' },
-                React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'price_range_to' }, i18next.t('price_range_to')),
+              React.createElement('div', null,
+                React.createElement('label', { className: 'configurator-label block text-center', 'data-i18n': 'price_range_to' }, i18next.t('price_range_to')),
                 React.createElement('input', {
                   type: 'number',
                   name: 'max',
                   value: priceRange.max,
                   onChange: handlePriceRangeChange,
-                  className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300',
-                  min: '0'
+                  className: 'mt-2 block w-full rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300 text-center light-theme:bg-white light-theme:text-black light-theme:border-gray-300'
                 })
               )
             )
           ),
           type && React.createElement('div', { className: 'mb-8 text-center tooltip' },
-            React.createElement('label', { className: 'block text-lg font-medium text-gray-200', 'data-i18n': 'specific_option_label' }, i18next.t('specific_option_label')),
+            React.createElement('label', { className: 'block text-lg font-medium text-gray-200 light-theme:text-gray-800', 'data-i18n': 'specific_option_label' }, i18next.t('specific_option_label')),
             React.createElement('span', { className: 'tooltip-text', 'data-i18n': 'specific_option_tooltip' }, i18next.t('specific_option_tooltip')),
             React.createElement('select', {
               value: specificOption,
               onChange: (e) => setSpecificOption(e.target.value),
-              className: 'mt-2 block w-full md:w-1/3 mx-auto rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300'
+              className: 'mt-2 block w-full md:w-1/3 mx-auto rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300 light-theme:bg-white light-theme:text-black light-theme:border-gray-300'
             },
               React.createElement('option', { value: '', 'data-i18n': 'specific_option_placeholder' }, i18next.t('specific_option_placeholder')),
               specificOptions[type].map(option =>
-                React.createElement('option', { key: option, value: option }, option)
+                React.createElement('option', { key: option, value: option }, i18next.t(option))
               )
             )
           ),
-          React.createElement('div', { className: 'flex justify-center mb-8 gap-4' },
+          React.createElement('div', { className: 'flex justify-center mb-4 gap-4' },
             React.createElement('button', {
               onClick: findBestOptions,
-              className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-6 py-3 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300 transform hover:scale-105',
-              'data-i18n': 'find_options'
-            }, i18next.t('find_options')),
-            React.createElement('button', {
-              onClick: () => sortResults(sortOrder === 'asc' ? 'desc' : 'asc'),
-              className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-6 py-3 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300 transform hover:scale-105',
-              'data-i18n': sortOrder === 'asc' ? 'sort_desc' : 'sort_asc'
-            }, i18next.t(sortOrder === 'asc' ? 'sort_desc' : 'sort_asc'))
-          ),
-          error && React.createElement('p', { className: 'text-red-400 text-center mb-4' }, error),
-          React.createElement('div', { className: 'tab-content' },
-            React.createElement('div', { className: 'tab-buttons flex justify-center mb-6' },
-              React.createElement('button', {
-                className: `tab-button ${activeTab === 'results' ? 'active' : ''}`,
-                onClick: () => setActiveTab('results'),
-                'data-i18n': 'tab_results'
-              }, i18next.t('tab_results')),
-              React.createElement('button', {
-                className: `tab-button ${activeTab === 'saved' ? 'active' : ''}`,
-                onClick: () => setActiveTab('saved'),
-                'data-i18n': 'tab_saved'
-              }, i18next.t('tab_saved')),
-              React.createElement('button', {
-                onClick: () => saveToPDF(false),
-                className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-4 py-2 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300',
-                'data-i18n': 'export_selected_pdf'
-              }, i18next.t('export_selected_pdf')),
-              React.createElement('button', {
-                onClick: () => saveToPDF(true),
-                className: 'bg-gradient-to-r from-green-500 to-purple-600 text-white px-4 py-2 rounded-xl shadow-lg hover:from-green-600 hover:to-purple-700 transition duration-300',
-                'data-i18n': 'export_all_pdf'
-              }, i18next.t('export_all_pdf'))
+              className: 'gradient-button'
+            },
+              React.createElement('span', { 'data-i18n': 'find_options' }, i18next.t('find_options'))
             ),
+            React.createElement('div', { className: 'sort-dropdown' },
+              React.createElement('button', { className: 'gradient-button' },
+                React.createElement('span', { 'data-i18n': 'sort_label' }, i18next.t('sort_label'))
+              ),
+              React.createElement('div', { className: 'dropdown-content' },
+                React.createElement('a', { href: '#', onClick: (e) => { e.preventDefault(); sortResults('asc'); } }, language === 'ru' ? 'По возрастанию' : 'Ascending'),
+                React.createElement('a', { href: '#', onClick: (e) => { e.preventDefault(); sortResults('desc'); } }, language === 'ru' ? 'По убыванию' : 'Descending')
+              )
+            )
+          ),
+          React.createElement('div', { className: 'tab-buttons' },
+            React.createElement('button', {
+              className: `tab-button ${activeTab === 'results' ? 'active' : ''}`,
+              onClick: () => setActiveTab('results')
+            },
+              React.createElement('span', { 'data-i18n': 'tab_results' }, i18next.t('tab_results'))
+            ),
+            React.createElement('button', {
+              className: `tab-button ${activeTab === 'saved' ? 'active' : ''}`,
+              onClick: () => setActiveTab('saved')
+            },
+              React.createElement('span', { 'data-i18n': 'tab_saved' }, i18next.t('tab_saved'))
+            ),
+            React.createElement('button', {
+              onClick: () => saveToPDF(false),
+              className: 'gradient-button'
+            },
+              React.createElement('span', { 'data-i18n': 'export_selected_pdf' }, i18next.t('export_selected_pdf'))
+            ),
+            React.createElement('button', {
+              onClick: () => saveToPDF(true),
+              className: 'gradient-button'
+            },
+              React.createElement('span', { 'data-i18n': 'export_all_pdf' }, i18next.t('export_all_pdf'))
+            )
+          ),
+          error && React.createElement('p', { className: 'text-red-400 text-center mb-4 light-theme:text-red-600' }, error),
+          React.createElement('div', { className: 'tab-content' },
             activeTab === 'results' && results.length > 0 && React.createElement('div', null,
               React.createElement('h2', {
-                className: 'text-4xl font-semibold text-white mb-8 text-center bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text',
+                className: 'text-4xl font-semibold text-white mb-8 text-center bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black',
                 'data-i18n': 'results_title'
               }, i18next.t('results_title')),
               React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' },
                 results.map(fitting =>
                   React.createElement('div', {
                     key: fitting.id,
-                    className: 'bg-gray-800 rounded-xl p-4 shadow-xl hover:bg-gray-700 hover:shadow-2xl transition-all duration-400 transform hover:-translate-y-2'
+                    className: 'bg-gray-800 rounded-xl p-4 shadow-xl hover:bg-gray-700 hover:shadow-2xl transition-all duration-400 transform hover:-translate-y-2 light-theme:bg-gray-100 light-theme:hover:bg-gray-200'
                   },
                     React.createElement('img', {
                       src: fitting.image,
                       alt: fitting.name,
                       className: 'w-full h-48 object-cover rounded-lg mb-4'
                     }),
-                    React.createElement('h3', { className: 'text-xl font-semibold text-green-300' }, `${i18next.t('name_label')}: ${fitting.name}`),
-                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('type')}: ${fitting.type}`),
-                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('subtype_label')}: ${fitting.subtype}`),
-                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('option')}: ${fitting.specificOption}`),
-                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('brand')}: ${fitting.brand}`),
-                    React.createElement('p', { className: 'text-purple-400 font-bold mt-2' }, `${i18next.t('price')}: ${fitting.price} руб.`),
-                    React.createElement('p', { className: 'text-gray-400 mt-2' }, `${i18next.t('description')}: ${fitting.description}`),
-                    React.createElement('button', {
-                      onClick: () => saveResult(fitting),
-                      className: 'bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 mt-4 transition duration-300',
-                      'data-i18n': 'save'
-                    }, i18next.t('save')),
-                    React.createElement('p', { className: 'text-xs text-gray-500 mt-2', 'data-i18n': 'price_disclaimer' }, i18next.t('price_disclaimer'))
+                    React.createElement('h3', { className: 'text-xl font-semibold text-purple-400 light-theme:text-purple-600' }, `${i18next.t('name_label')}: ${fitting.name}`),
+                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('type')}: ${i18next.t(fitting.type)}`),
+                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('subtype_label')}: ${i18next.t(fitting.subtype)}`),
+                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('option')}: ${i18next.t(fitting.specificOption)}`),
+                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('brand')}: ${i18next.t(fitting.brand)}`),
+                    React.createElement('p', { className: 'text-purple-400 font-bold mt-2 light-theme:text-purple-600' }, `${i18next.t('price')}: ${fitting.price} руб.`),
+                    React.createElement('p', { className: 'text-gray-400 mt-2 light-theme:text-gray-500' }, `${i18next.t('description')}: ${fitting.description}`),
+                    React.createElement('div', { className: 'flex justify-center mt-4' },
+                      React.createElement('button', {
+                        onClick: () => saveResult(fitting),
+                        className: 'gradient-button'
+                      },
+                        React.createElement('span', { 'data-i18n': 'save' }, i18next.t('save'))
+                      )
+                    ),
+                    React.createElement('p', { className: 'text-xs text-gray-500 mt-2 light-theme:text-gray-400', 'data-i18n': 'price_disclaimer' }, i18next.t('price_disclaimer'))
                   )
                 )
               )
             ),
             activeTab === 'saved' && savedResults.length > 0 && React.createElement('div', null,
               React.createElement('h2', {
-                className: 'text-4xl font-semibold text-white mb-8 text-center bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text',
+                className: 'text-4xl font-semibold text-white mb-8 text-center bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black',
                 'data-i18n': 'saved_results_title'
               }, i18next.t('saved_results_title')),
               React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' },
                 savedResults.map(fitting =>
                   React.createElement('div', {
                     key: fitting.id,
-                    className: 'bg-gray-700 rounded-xl p-4 shadow-md hover:bg-gray-600 transition duration-300'
+                    className: 'bg-gray-700 rounded-xl p-4 shadow-md hover:bg-gray-600 transition duration-300 light-theme:bg-gray-200 light-theme:hover:bg-gray-300'
                   },
-                    React.createElement('h3', { className: 'text-xl font-semibold text-green-300' }, `${i18next.t('name_label')}: ${fitting.name}`),
-                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('price')}: ${fitting.price} руб.`),
-                    React.createElement('p', { className: 'text-gray-300' }, `${i18next.t('description')}: ${fitting.description}`)
+                    React.createElement('h3', { className: 'text-xl font-semibold text-purple-400 light-theme:text-purple-600' }, `${i18next.t('name_label')}: ${fitting.name}`),
+                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('price')}: ${fitting.price} руб.`),
+                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('description')}: ${fitting.description}`)
                   )
                 )
               )
@@ -642,7 +883,7 @@
 
     const PromotionsPage = () => (
       React.createElement('div', { className: 'container-overlay' },
-        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text', 'data-i18n': 'promotions_title' }, i18next.t('promotions_title')),
+        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black', 'data-i18n': 'promotions_title' }, i18next.t('promotions_title')),
         React.createElement('div', { className: 'promotion-card' },
           React.createElement('p', { 'data-i18n': 'promotion_gtv_discount' }, i18next.t('promotion_gtv_discount'))
         ),
@@ -654,8 +895,8 @@
 
     const WarehousePage = () => (
       React.createElement('div', { className: 'tour-container' },
-        React.createElement('h2', { className: 'text-4xl font-bold mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text', 'data-i18n': 'warehouse_title' }, i18next.t('warehouse_title')),
-        React.createElement('p', { className: 'mb-6', 'data-i18n': 'warehouse_text' }, i18next.t('warehouse_text')),
+        React.createElement('h2', { className: 'text-4xl font-bold mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black', 'data-i18n': 'warehouse_title' }, i18next.t('warehouse_title')),
+        React.createElement('p', { className: 'mb-6 light-theme:text-gray-600', 'data-i18n': 'warehouse_text' }, i18next.t('warehouse_text')),
         React.createElement('iframe', {
           src: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
           title: 'Virtual Tour',
@@ -668,21 +909,24 @@
 
     const ContactsPage = () => (
       React.createElement('div', { className: 'container-overlay' },
-        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text', 'data-i18n': 'contacts_title' }, i18next.t('contacts_title')),
-        React.createElement('p', { className: 'mb-6 text-center', 'data-i18n': 'contacts_text' }, i18next.t('contacts_text'))
-      )
-    );
-
-    const ReviewsPage = () => (
-      React.createElement('div', { className: 'container-overlay' },
-        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text', 'data-i18n': 'reviews_title' }, i18next.t('reviews_title')),
-        React.createElement('p', { className: 'mb-6 text-center', 'data-i18n': 'reviews_text' }, i18next.t('reviews_text'))
+        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black', 'data-i18n': 'contacts_title' }, i18next.t('contacts_title')),
+        React.createElement('p', { className: 'mb-6 text-center light-theme:text-gray-600', 'data-i18n': 'contacts_text' }, i18next.t('contacts_text'))
       )
     );
 
     const App = () => {
       const [currentPage, setCurrentPage] = useState('welcome');
       const [language, setLanguage] = useState('ru');
+      const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+      useEffect(() => {
+        document.body.className = `${theme}-theme flex flex-col min-h-screen p-4`;
+        localStorage.setItem('theme', theme);
+      }, [theme]);
+
+      const toggleTheme = () => {
+        setTheme(theme === 'dark' ? 'light' : 'dark');
+      };
 
       const renderPage = () => {
         switch (currentPage) {
@@ -692,14 +936,13 @@
           case 'warehouse': return React.createElement(WarehousePage);
           case 'promotions': return React.createElement(PromotionsPage);
           case 'contacts': return React.createElement(ContactsPage);
-          case 'reviews': return React.createElement(ReviewsPage);
           default: return React.createElement(WelcomePage, { onNavigate: () => setCurrentPage('configurator') });
         }
       };
 
       return (
         React.createElement(React.Fragment, null,
-          React.createElement(Navbar, { setCurrentPage, onLanguageChange: setLanguage }),
+          React.createElement(Navbar, { setCurrentPage, onLanguageChange: setLanguage, toggleTheme, currentTheme: theme }),
           renderPage()
         )
       );
