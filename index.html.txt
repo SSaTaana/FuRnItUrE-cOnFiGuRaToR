@@ -17,7 +17,7 @@
       color: #e0e1dd;
     }
     body.light-theme {
-      background: linear-gradient(135deg, #E8F5E9, #C8E6C9); /* Более выраженный светло-изумрудный отлив */
+      background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
       color: #333;
     }
     .container-overlay, .welcome-container {
@@ -60,12 +60,12 @@
       top: 0;
       width: 100%;
       background: linear-gradient(90deg, #0d1b2a, #415a77);
-      padding: 1.5rem 0;
+      padding: 1.5rem 3rem;
       z-index: 20;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     }
     .light-theme .navbar {
-      background: linear-gradient(90deg, #2E7D32, #43A047); /* Темно-изумрудный фон для вкладок */
+      background: linear-gradient(90deg, #2E7D32, #43A047);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
     .price-inputs-container {
@@ -105,7 +105,7 @@
       border-color: #00ff96;
     }
     .tab-button span, .gradient-button span {
-      color: white; /* Статичный белый цвет текста */
+      color: white;
     }
     .tab-content {
       margin-top: 18rem;
@@ -145,7 +145,7 @@
       h2 { font-size: 1.3rem; }
       .grid-cols-3 { grid-template-columns: 1fr; }
       .edge-animation { display: none; }
-      .navbar { padding: 0.75rem 0; }
+      .navbar { padding: 0.75rem 1.5rem; }
       .navbar a { font-size: 0.95rem; padding: 0.5rem; }
       .price-inputs-container { flex-direction: column; align-items: center; }
       .price-inputs-container div { max-width: 100%; }
@@ -263,6 +263,11 @@
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+    }
+    .fittings-image {
+      height: 200px;
+      object-fit: cover;
+      object-position: center;
     }
   </style>
 </head>
@@ -410,27 +415,7 @@
             "contacts_text": "Leave a request for consultation.",
             "sort_asc": "Ascending",
             "sort_desc": "Descending",
-            "sort_label": "Sort",
-            "Hinge": "Hinge",
-            "Corner": "Corner",
-            "Overlay": "Overlay",
-            "Inset": "Inset",
-            "Push-to-open": "Push-to-open",
-            "Reinforced": "Reinforced",
-            "Guide": "Guide",
-            "Ball-bearing": "Ball-bearing",
-            "Roller": "Roller",
-            "Handle": "Handle",
-            "Round": "Round",
-            "Long": "Long",
-            "Rail": "Rail",
-            "Mounting": "Mounting",
-            "Hidden": "Hidden",
-            "Adjustable": "Adjustable",
-            "Standard": "Standard",
-            "With soft-close": "With soft-close",
-            "Light": "Light",
-            "Basic": "Basic"
+            "sort_label": "Sort"
           }
         }
       }
@@ -597,23 +582,28 @@
       ];
 
       const specificOptions = {
-        "Hinge": ["Standard", "With soft-close", "Push-to-open", "Reinforced"],
-        "Guide": ["Standard", "With soft-close", "Light"],
-        "Handle": ["Standard", "Rail"],
-        "Mounting": ["Basic", "Adjustable"]
+        "Петля": ["Стандартная", "С доводчиком", "Push-to-open", "Усиленная", "Скрытая", "Декоративная", "Компактная", "Двойная", "Мини", "Премиум"],
+        "Направляющая": ["Стандартная", "С доводчиком", "Push-to-open", "Лёгкая", "Усиленная", "Декоративная", "Мягкая", "Двойная", "Компактная"],
+        "Ручка": ["Классическая", "Рейлинг", "Скоба", "Винтажная", "Современная", "Дизайнерская", "Минималистичная", "Эргономичная"],
+        "Крепление": ["Базовое", "Регулируемое", "Улучшенное", "Компактное", "Стандартное", "Усиленное", "Универсальное", "Потолочное"]
       };
 
-      const fetchPricesFromAPI = async (fittings) => {
-        // Заглушка для API: имитация получения цен с маркетплейса
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            const updatedFittings = fittings.map(fitting => ({
-              ...fitting,
-              price: fitting.price + Math.floor(Math.random() * 200) - 100 // Имитация изменения цены
-            }));
-            resolve(updatedFittings);
-          }, 1000);
-        });
+      const fetchPriceFromWeb = async (fittingName) => {
+        try {
+          const url = "https://example.com/product-page"; // Замените на реальный URL
+          const response = await fetch(url);
+          const text = await response.text();
+          const soup = new DOMParser().parseFromString(text, 'text/html');
+          const priceElement = soup.querySelector('span.price');
+          if (priceElement) {
+            const price = parseFloat(priceElement.textContent.replace(/[^0-9.]/g, '')) || fittingName.price;
+            return price;
+          }
+          return fittingName.price; // Возвращаем исходную цену при ошибке
+        } catch (error) {
+          console.error("Ошибка парсинга:", error);
+          return fittingName.price;
+        }
       };
 
       const findBestOptions = async () => {
@@ -623,11 +613,11 @@
         }
 
         const filteredFittings = fittingsDatabase.filter(fitting => {
-          const typeMatch = type ? fitting.type === type : true;
-          const specificOptionMatch = specificOption ? fitting.specificOption === specificOption : true;
-          const brandMatch = brand ? fitting.brand === brand : true;
-          const priceMinMatch = priceRange.min !== '' ? fitting.price >= Number(priceRange.min) : true;
-          const priceMaxMatch = priceRange.max !== '' ? fitting.price <= Number(priceRange.max) : true;
+          const typeMatch = !type || fitting.type === type;
+          const specificOptionMatch = !specificOption || fitting.specificOption === specificOption;
+          const brandMatch = !brand || fitting.brand === brand;
+          const priceMinMatch = !priceRange.min || fitting.price >= Number(priceRange.min);
+          const priceMaxMatch = !priceRange.max || fitting.price <= Number(priceRange.max);
 
           return typeMatch && specificOptionMatch && brandMatch && priceMinMatch && priceMaxMatch;
         });
@@ -641,8 +631,10 @@
           setError('');
         }
 
-        // Обновление цен через API
-        const updatedFittings = await fetchPricesFromAPI(finalFittings);
+        const updatedFittings = await Promise.all(finalFittings.map(async (fitting) => {
+          const newPrice = await fetchPriceFromWeb(fitting);
+          return { ...fitting, price: newPrice };
+        }));
         setResults(updatedFittings);
       };
 
@@ -732,6 +724,20 @@
               )
             )
           ),
+          type && React.createElement('div', { className: 'mb-8 text-center tooltip' },
+            React.createElement('label', { className: 'block text-lg font-medium text-gray-200 light-theme:text-gray-800', 'data-i18n': 'specific_option_label' }, i18next.t('specific_option_label')),
+            React.createElement('span', { className: 'tooltip-text', 'data-i18n': 'specific_option_tooltip' }, i18next.t('specific_option_tooltip')),
+            React.createElement('select', {
+              value: specificOption,
+              onChange: (e) => setSpecificOption(e.target.value),
+              className: 'mt-2 block w-1/2 mx-auto rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300 light-theme:bg-white light-theme:text-black light-theme:border-gray-300'
+            },
+              React.createElement('option', { value: '', 'data-i18n': 'specific_option_placeholder' }, i18next.t('specific_option_placeholder')),
+              specificOptions[type].map(option =>
+                React.createElement('option', { key: option, value: option }, i18next.t(option))
+              )
+            )
+          ),
           React.createElement('div', { className: 'price-inputs-container' },
             React.createElement('div', { className: 'flex flex-col md:flex-row gap-6 justify-center' },
               React.createElement('div', null,
@@ -756,116 +762,103 @@
               )
             )
           ),
-          type && React.createElement('div', { className: 'mb-8 text-center tooltip' },
-            React.createElement('label', { className: 'block text-lg font-medium text-gray-200 light-theme:text-gray-800', 'data-i18n': 'specific_option_label' }, i18next.t('specific_option_label')),
-            React.createElement('span', { className: 'tooltip-text', 'data-i18n': 'specific_option_tooltip' }, i18next.t('specific_option_tooltip')),
-            React.createElement('select', {
-              value: specificOption,
-              onChange: (e) => setSpecificOption(e.target.value),
-              className: 'mt-2 block w-full md:w-1/3 mx-auto rounded-lg border-gray-600 bg-gray-800 text-white shadow-md focus:ring-green-500 focus:border-green-500 p-3 transition duration-300 light-theme:bg-white light-theme:text-black light-theme:border-gray-300'
-            },
-              React.createElement('option', { value: '', 'data-i18n': 'specific_option_placeholder' }, i18next.t('specific_option_placeholder')),
-              specificOptions[type].map(option =>
-                React.createElement('option', { key: option, value: option }, i18next.t(option))
-              )
-            )
-          ),
-          React.createElement('div', { className: 'flex justify-center mb-4 gap-4' },
+          React.createElement('div', { className: 'text-center mb-6' },
             React.createElement('button', {
               onClick: findBestOptions,
               className: 'gradient-button'
             },
               React.createElement('span', { 'data-i18n': 'find_options' }, i18next.t('find_options'))
-            ),
-            React.createElement('div', { className: 'sort-dropdown' },
-              React.createElement('button', { className: 'gradient-button' },
-                React.createElement('span', { 'data-i18n': 'sort_label' }, i18next.t('sort_label'))
-              ),
-              React.createElement('div', { className: 'dropdown-content' },
-                React.createElement('a', { href: '#', onClick: (e) => { e.preventDefault(); sortResults('asc'); } }, language === 'ru' ? 'По возрастанию' : 'Ascending'),
-                React.createElement('a', { href: '#', onClick: (e) => { e.preventDefault(); sortResults('desc'); } }, language === 'ru' ? 'По убыванию' : 'Descending')
-              )
             )
           ),
           React.createElement('div', { className: 'tab-buttons' },
             React.createElement('button', {
-              className: `tab-button ${activeTab === 'results' ? 'active' : ''}`,
-              onClick: () => setActiveTab('results')
+              onClick: () => setActiveTab('results'),
+              className: `tab-button ${activeTab === 'results' ? 'active' : ''}`
             },
               React.createElement('span', { 'data-i18n': 'tab_results' }, i18next.t('tab_results'))
             ),
             React.createElement('button', {
-              className: `tab-button ${activeTab === 'saved' ? 'active' : ''}`,
-              onClick: () => setActiveTab('saved')
+              onClick: () => setActiveTab('saved'),
+              className: `tab-button ${activeTab === 'saved' ? 'active' : ''}`
             },
               React.createElement('span', { 'data-i18n': 'tab_saved' }, i18next.t('tab_saved'))
-            ),
-            React.createElement('button', {
-              onClick: () => saveToPDF(false),
-              className: 'gradient-button'
-            },
-              React.createElement('span', { 'data-i18n': 'export_selected_pdf' }, i18next.t('export_selected_pdf'))
-            ),
-            React.createElement('button', {
-              onClick: () => saveToPDF(true),
-              className: 'gradient-button'
-            },
-              React.createElement('span', { 'data-i18n': 'export_all_pdf' }, i18next.t('export_all_pdf'))
             )
           ),
-          error && React.createElement('p', { className: 'text-red-400 text-center mb-4 light-theme:text-red-600' }, error),
           React.createElement('div', { className: 'tab-content' },
-            activeTab === 'results' && results.length > 0 && React.createElement('div', null,
-              React.createElement('h2', {
-                className: 'text-4xl font-semibold text-white mb-8 text-center bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black',
-                'data-i18n': 'results_title'
-              }, i18next.t('results_title')),
-              React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' },
-                results.map(fitting =>
-                  React.createElement('div', {
-                    key: fitting.id,
-                    className: 'bg-gray-800 rounded-xl p-4 shadow-xl hover:bg-gray-700 hover:shadow-2xl transition-all duration-400 transform hover:-translate-y-2 light-theme:bg-gray-100 light-theme:hover:bg-gray-200'
+            activeTab === 'results' && (
+              React.createElement('div', null,
+                error && React.createElement('p', { className: 'text-red-400 text-center mb-4' }, error),
+                React.createElement('h2', {
+                  className: 'text-3xl font-bold text-center mb-6 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
+                  'data-i18n': 'results_title'
+                }, i18next.t('results_title')),
+                React.createElement('div', { className: 'sort-dropdown mb-4' },
+                  React.createElement('button', {
+                    onClick: () => { sortResults(sortOrder === 'asc' ? 'none' : 'asc'); },
+                    className: 'gradient-button'
                   },
-                    React.createElement('img', {
-                      src: fitting.image,
-                      alt: fitting.name,
-                      className: 'w-full h-48 object-cover rounded-lg mb-4'
-                    }),
-                    React.createElement('h3', { className: 'text-xl font-semibold text-purple-400 light-theme:text-purple-600' }, `${i18next.t('name_label')}: ${fitting.name}`),
-                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('type')}: ${i18next.t(fitting.type)}`),
-                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('subtype_label')}: ${i18next.t(fitting.subtype)}`),
-                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('option')}: ${i18next.t(fitting.specificOption)}`),
-                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('brand')}: ${i18next.t(fitting.brand)}`),
-                    React.createElement('p', { className: 'text-purple-400 font-bold mt-2 light-theme:text-purple-600' }, `${i18next.t('price')}: ${fitting.price} руб.`),
-                    React.createElement('p', { className: 'text-gray-400 mt-2 light-theme:text-gray-500' }, `${i18next.t('description')}: ${fitting.description}`),
-                    React.createElement('div', { className: 'flex justify-center mt-4' },
+                    React.createElement('span', { 'data-i18n': 'sort_asc' }, i18next.t('sort_asc'))
+                  ),
+                  React.createElement('button', {
+                    onClick: () => { sortResults(sortOrder === 'desc' ? 'none' : 'desc'); },
+                    className: 'gradient-button ml-2'
+                  },
+                    React.createElement('span', { 'data-i18n': 'sort_desc' }, i18next.t('sort_desc'))
+                  )
+                ),
+                React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-6' },
+                  results.map(fitting => (
+                    React.createElement('div', { key: fitting.id, className: 'p-4 bg-gray-800 rounded-lg shadow-lg light-theme:bg-gray-100' },
+                      React.createElement('img', { src: fitting.image, alt: fitting.name, className: 'fittings-image w-full mb-4 rounded' }),
+                      React.createElement('h3', { className: 'text-xl font-semibold' }, fitting.name),
+                      React.createElement('p', null, `${i18next.t('type')}: ${i18next.t(fitting.type)}`),
+                      React.createElement('p', null, `${i18next.t('subtype_label')}: ${i18next.t(fitting.subtype)}`),
+                      React.createElement('p', null, `${i18next.t('option')}: ${i18next.t(fitting.specificOption)}`),
+                      React.createElement('p', null, `${i18next.t('brand')}: ${i18next.t(fitting.brand)}`),
+                      React.createElement('p', null, `${i18next.t('price')}: ${fitting.price} руб. ${i18next.t('price_disclaimer')}`),
+                      React.createElement('p', null, `${i18next.t('description')}: ${fitting.description}`),
                       React.createElement('button', {
                         onClick: () => saveResult(fitting),
-                        className: 'gradient-button'
+                        className: 'gradient-button mt-2 w-full'
                       },
                         React.createElement('span', { 'data-i18n': 'save' }, i18next.t('save'))
                       )
-                    ),
-                    React.createElement('p', { className: 'text-xs text-gray-500 mt-2 light-theme:text-gray-400', 'data-i18n': 'price_disclaimer' }, i18next.t('price_disclaimer'))
-                  )
+                    )
+                  ))
+                ),
+                results.length > 0 && React.createElement('button', {
+                  onClick: () => saveToPDF(false),
+                  className: 'gradient-button mt-6'
+                },
+                  React.createElement('span', { 'data-i18n': 'export_selected_pdf' }, i18next.t('export_selected_pdf'))
                 )
               )
             ),
-            activeTab === 'saved' && savedResults.length > 0 && React.createElement('div', null,
-              React.createElement('h2', {
-                className: 'text-4xl font-semibold text-white mb-8 text-center bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black',
-                'data-i18n': 'saved_results_title'
-              }, i18next.t('saved_results_title')),
-              React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' },
-                savedResults.map(fitting =>
-                  React.createElement('div', {
-                    key: fitting.id,
-                    className: 'bg-gray-700 rounded-xl p-4 shadow-md hover:bg-gray-600 transition duration-300 light-theme:bg-gray-200 light-theme:hover:bg-gray-300'
-                  },
-                    React.createElement('h3', { className: 'text-xl font-semibold text-purple-400 light-theme:text-purple-600' }, `${i18next.t('name_label')}: ${fitting.name}`),
-                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('price')}: ${fitting.price} руб.`),
-                    React.createElement('p', { className: 'text-gray-300 light-theme:text-gray-600' }, `${i18next.t('description')}: ${fitting.description}`)
-                  )
+            activeTab === 'saved' && (
+              React.createElement('div', null,
+                React.createElement('h2', {
+                  className: 'text-3xl font-bold text-center mb-6 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
+                  'data-i18n': 'saved_results_title'
+                }, i18next.t('saved_results_title')),
+                React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-6' },
+                  savedResults.map(fitting => (
+                    React.createElement('div', { key: fitting.id, className: 'p-4 bg-gray-800 rounded-lg shadow-lg light-theme:bg-gray-100' },
+                      React.createElement('img', { src: fitting.image, alt: fitting.name, className: 'fittings-image w-full mb-4 rounded' }),
+                      React.createElement('h3', { className: 'text-xl font-semibold' }, fitting.name),
+                      React.createElement('p', null, `${i18next.t('type')}: ${i18next.t(fitting.type)}`),
+                      React.createElement('p', null, `${i18next.t('subtype_label')}: ${i18next.t(fitting.subtype)}`),
+                      React.createElement('p', null, `${i18next.t('option')}: ${i18next.t(fitting.specificOption)}`),
+                      React.createElement('p', null, `${i18next.t('brand')}: ${i18next.t(fitting.brand)}`),
+                      React.createElement('p', null, `${i18next.t('price')}: ${fitting.price} руб. ${i18next.t('price_disclaimer')}`),
+                      React.createElement('p', null, `${i18next.t('description')}: ${fitting.description}`)
+                    )
+                  ))
+                ),
+                savedResults.length > 0 && React.createElement('button', {
+                  onClick: () => saveToPDF(true),
+                  className: 'gradient-button mt-6'
+                },
+                  React.createElement('span', { 'data-i18n': 'export_all_pdf' }, i18next.t('export_all_pdf'))
                 )
               )
             )
@@ -876,14 +869,20 @@
 
     const AboutPage = () => (
       React.createElement('div', { className: 'about-container' },
-        React.createElement('h2', { className: 'text-4xl font-bold', 'data-i18n': 'about_title' }, i18next.t('about_title')),
-        React.createElement('p', { 'data-i18n': 'about_text' }, i18next.t('about_text'))
+        React.createElement('h2', {
+          className: 'text-4xl font-bold mb-6',
+          'data-i18n': 'about_title'
+        }, i18next.t('about_title')),
+        React.createElement('p', { className: 'text-lg', 'data-i18n': 'about_text' }, i18next.t('about_text'))
       )
     );
 
     const PromotionsPage = () => (
       React.createElement('div', { className: 'container-overlay' },
-        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black', 'data-i18n': 'promotions_title' }, i18next.t('promotions_title')),
+        React.createElement('h2', {
+          className: 'text-4xl font-bold text-center mb-6 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
+          'data-i18n': 'promotions_title'
+        }, i18next.t('promotions_title')),
         React.createElement('div', { className: 'promotion-card' },
           React.createElement('p', { 'data-i18n': 'promotion_gtv_discount' }, i18next.t('promotion_gtv_discount'))
         ),
@@ -895,13 +894,16 @@
 
     const WarehousePage = () => (
       React.createElement('div', { className: 'tour-container' },
-        React.createElement('h2', { className: 'text-4xl font-bold mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black', 'data-i18n': 'warehouse_title' }, i18next.t('warehouse_title')),
-        React.createElement('p', { className: 'mb-6 light-theme:text-gray-600', 'data-i18n': 'warehouse_text' }, i18next.t('warehouse_text')),
+        React.createElement('h2', {
+          className: 'text-4xl font-bold mb-6 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
+          'data-i18n': 'warehouse_title'
+        }, i18next.t('warehouse_title')),
+        React.createElement('p', { className: 'text-lg mb-6', 'data-i18n': 'warehouse_text' }, i18next.t('warehouse_text')),
         React.createElement('iframe', {
-          src: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-          title: 'Virtual Tour',
-          frameBorder: '0',
-          allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
+          src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+          title: "Virtual Tour",
+          frameBorder: "0",
+          allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
           allowFullScreen: true
         })
       )
@@ -909,47 +911,47 @@
 
     const ContactsPage = () => (
       React.createElement('div', { className: 'container-overlay' },
-        React.createElement('h2', { className: 'text-4xl font-bold text-center mb-8 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text light-theme:text-black', 'data-i18n': 'contacts_title' }, i18next.t('contacts_title')),
-        React.createElement('p', { className: 'mb-6 text-center light-theme:text-gray-600', 'data-i18n': 'contacts_text' }, i18next.t('contacts_text'))
+        React.createElement('h2', {
+          className: 'text-4xl font-bold text-center mb-6 bg-gradient-to-r from-green-400 to-purple-600 bg-clip-text text-transparent',
+          'data-i18n': 'contacts_title'
+        }, i18next.t('contacts_title')),
+        React.createElement('p', { className: 'text-lg text-center mb-6', 'data-i18n': 'contacts_text' }, i18next.t('contacts_text'))
       )
     );
 
     const App = () => {
       const [currentPage, setCurrentPage] = useState('welcome');
       const [language, setLanguage] = useState('ru');
-      const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
-
-      useEffect(() => {
-        document.body.className = `${theme}-theme flex flex-col min-h-screen p-4`;
-        localStorage.setItem('theme', theme);
-      }, [theme]);
+      const [theme, setTheme] = useState('dark');
 
       const toggleTheme = () => {
-        setTheme(theme === 'dark' ? 'light' : 'dark');
+        setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+        document.body.className = `flex flex-col min-h-screen p-4 ${theme === 'dark' ? 'light-theme' : 'dark-theme'}`;
       };
 
-      const renderPage = () => {
-        switch (currentPage) {
-          case 'welcome': return React.createElement(WelcomePage, { onNavigate: () => setCurrentPage('configurator') });
-          case 'configurator': return React.createElement(ConfiguratorPage, { language });
-          case 'about': return React.createElement(AboutPage);
-          case 'warehouse': return React.createElement(WarehousePage);
-          case 'promotions': return React.createElement(PromotionsPage);
-          case 'contacts': return React.createElement(ContactsPage);
-          default: return React.createElement(WelcomePage, { onNavigate: () => setCurrentPage('configurator') });
-        }
-      };
+      useEffect(() => {
+        document.body.className = `flex flex-col min-h-screen p-4 ${theme}-theme`;
+      }, [theme]);
 
       return (
-        React.createElement(React.Fragment, null,
-          React.createElement(Navbar, { setCurrentPage, onLanguageChange: setLanguage, toggleTheme, currentTheme: theme }),
-          renderPage()
+        React.createElement('div', null,
+          React.createElement(Navbar, {
+            setCurrentPage,
+            onLanguageChange: setLanguage,
+            toggleTheme,
+            currentTheme: theme
+          }),
+          currentPage === 'welcome' && React.createElement(WelcomePage, { onNavigate: () => setCurrentPage('configurator') }),
+          currentPage === 'configurator' && React.createElement(ConfiguratorPage, { language }),
+          currentPage === 'about' && React.createElement(AboutPage, null),
+          currentPage === 'promotions' && React.createElement(PromotionsPage, null),
+          currentPage === 'warehouse' && React.createElement(WarehousePage, null),
+          currentPage === 'contacts' && React.createElement(ContactsPage, null)
         )
       );
     };
 
-    const root = createRoot(document.getElementById('root'));
-    root.render(React.createElement(App));
+    createRoot(document.getElementById('root')).render(React.createElement(App));
   </script>
 </body>
 </html>
