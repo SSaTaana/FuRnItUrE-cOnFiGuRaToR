@@ -65,7 +65,7 @@
       top: 0;
       width: 100%;
       background: linear-gradient(90deg, #0d1b2a, #415a77);
-      padding: 1.5rem 3rem;
+      padding: 2.5rem 3rem;
       z-index: 20;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
       overflow-x: auto;
